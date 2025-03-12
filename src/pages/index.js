@@ -1,31 +1,30 @@
-import { useState, useEffect } from 'react';
-import { FiArrowRight, FiArrowDown } from 'react-icons/fi';
+import { useState } from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
-import Layout from '@/components/layout/Layout';
-import ArticleCard from '@/components/newsletter/ArticleCard';
-import SubscriptionForm from '@/components/newsletter/SubscriptionForm';
+import { FiClock, FiArrowRight, FiArrowDown } from 'react-icons/fi';
 
 export default function Home() {
-  const [animatedItems, setAnimatedItems] = useState([]);
-  
-  // Animation on scroll effect
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setAnimatedItems(prev => [...prev, entry.target.getAttribute('data-animate-id')]);
-        }
-      });
-    }, { threshold: 0.1 });
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
     
-    const elements = document.querySelectorAll('[data-animate-id]');
-    elements.forEach(el => observer.observe(el));
+    if (!email || !email.includes('@')) {
+      alert('Please enter a valid email address');
+      return;
+    }
     
-    return () => {
-      elements.forEach(el => observer.unobserve(el));
-    };
-  }, []);
-  
+    setIsSubmitting(true);
+    
+    // Simulating API call
+    setTimeout(() => {
+      alert('Thank you for subscribing!');
+      setEmail('');
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
   // Sample geoscience news articles
   const featuredArticles = [
     {
@@ -36,7 +35,6 @@ export default function Home() {
       readTime: "3 minute read",
       summary: "Researchers found evidence suggesting sea levels during the last interglacial period were up to 3 meters higher than current estimates.",
       source: "Nature",
-      url: "/article/oceanography-sea-levels"
     },
     {
       id: 2,
@@ -46,7 +44,6 @@ export default function Home() {
       readTime: "4 minute read",
       summary: "Unusual mineral deposits found in Indonesian volcano may require revisions to our understanding of magma chamber dynamics.",
       source: "Science",
-      url: "/article/volcanology-mineral-formation"
     },
     {
       id: 3,
@@ -56,7 +53,6 @@ export default function Home() {
       readTime: "5 minute read",
       summary: "Satellite measurements reveal Arctic ice is melting at rates faster than predicted by leading climate models, raising concerns about feedback loops.",
       source: "Geophysical Research Letters",
-      url: "/article/climate-arctic-ice"
     }
   ];
 
@@ -68,7 +64,6 @@ export default function Home() {
       date: "Mar 11",
       readTime: "6 minute read",
       source: "NASA",
-      url: "/article/mars-water-reservoir"
     },
     {
       id: 5,
@@ -77,7 +72,6 @@ export default function Home() {
       date: "Mar 10",
       readTime: "4 minute read",
       source: "USGS",
-      url: "/article/seismic-monitoring-tool"
     },
     {
       id: 6,
@@ -86,7 +80,6 @@ export default function Home() {
       date: "Mar 10",
       readTime: "3 minute read",
       source: "Mining Journal",
-      url: "/article/machine-learning-mineral-deposits"
     },
     {
       id: 7,
@@ -95,151 +88,240 @@ export default function Home() {
       date: "Mar 9",
       readTime: "5 minute read",
       source: "Eos",
-      url: "/article/magnetic-field-reversal"
     }
   ];
 
-  const isAnimated = (id) => animatedItems.includes(id);
-
   return (
-    <Layout>
-      {/* Hero Section with Diadora-style design */}
-      <div className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden">
-        {/* Background geometric shapes */}
-        <div className="absolute top-0 right-0 w-1/3 h-1/2 bg-accent opacity-10 -rotate-12 transform translate-x-1/4 -translate-y-1/4"></div>
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/3 bg-primary opacity-5 rotate-12 transform -translate-x-1/4 translate-y-1/4"></div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="font-heading text-5xl md:text-7xl text-secondary uppercase font-bold mb-6 tracking-tight text-center leading-none">
-              <span className="relative inline-block">Geo</span>
-              <span className="relative inline-block text-primary">Science</span>
-              <br />
-              <span className="text-4xl md:text-5xl">in 5 minutes daily</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-neutral-600 mb-12 text-center max-w-3xl mx-auto">
-              Get the <span className="highlight">most important</span> earth science research and discoveries in a free daily email.
-            </p>
+    <div className="min-h-screen bg-white">
+      <Head>
+        <title>GeoBit - TLDR for Geoscientists</title>
+        <meta name="description" content="A TLDR-style newsletter for geoscientists with the latest research and industry news" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-            <div className="max-w-lg mx-auto mb-10">
-              <SubscriptionForm />
-            </div>
-            
-            <div className="text-center">
-              <a 
-                href="#featured" 
-                className="inline-flex items-center justify-center text-primary hover:text-primary-700 font-bold transition-all duration-300"
-              >
-                <span className="mr-2 uppercase">Explore articles</span>
-                <FiArrowDown className="animate-bounce" />
-              </a>
-            </div>
+      {/* Header/Navigation */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <Link href="/" className="text-2xl font-bold">
+              <span className="text-[#001F3F]">Geo<span className="text-[#FF4D00]">Bit</span></span>
+            </Link>
+            <nav className="hidden md:flex space-x-6">
+              <Link href="/newsletters" className="text-gray-600 hover:text-gray-900">Newsletters</Link>
+              <Link href="/archive" className="text-gray-600 hover:text-gray-900">Archive</Link>
+              <Link href="/about" className="text-gray-600 hover:text-gray-900">About</Link>
+              <Link href="/subscribe" className="bg-[#FF4D00] text-white px-4 py-2 rounded font-medium hover:bg-[#E64500]">Subscribe</Link>
+            </nav>
           </div>
         </div>
-        
-        {/* Colorful section divider */}
-        <div className="section-divider absolute bottom-0 left-0 w-full"></div>
-      </div>
+      </header>
 
-      {/* Featured Section */}
-      <section 
-        id="featured" 
-        className="py-20 bg-white relative"
-        data-animate-id="featured-section"
-      >
-        <div className="container mx-auto px-4">
-          <div className={`mb-12 transition-all duration-1000 transform ${
-            isAnimated('featured-section') ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-          }`}>
-            <h2 className="font-heading text-4xl text-secondary uppercase font-bold mb-2 tracking-tight">
-              Featured Research
-            </h2>
-            <div className="h-1 w-24 bg-primary mb-8"></div>
-            <p className="text-xl text-neutral-600 max-w-3xl">
-              The most significant earth science discoveries and breakthroughs you should know about.
-            </p>
-          </div>
+      {/* Section divider - TLDR.tech style */}
+      <div className="section-divider w-full"></div>
 
-          <div className="space-y-16">
-            {featuredArticles.map((article, index) => (
-              <div 
-                key={article.id}
-                data-animate-id={`featured-${index}`}
-                className={`transition-all duration-1000 delay-${index * 200} transform ${
-                  isAnimated(`featured-${index}`) ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'
-                }`}
+      {/* Hero Section */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#001F3F] mb-6">
+            GEOSCIENCE<br />IN 5 MINUTES DAILY
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            Get the <span className="text-[#FF4D00] font-bold">most important</span> earth science research and discoveries in a free daily email.
+          </p>
+
+          <form onSubmit={handleSubscribe} className="max-w-md mx-auto mb-8">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-grow px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#FF4D00] focus:border-[#FF4D00]"
+                placeholder="Enter your email"
+                required
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-3 bg-[#FF4D00] hover:bg-[#E64500] text-white font-medium rounded-md transition duration-200 disabled:opacity-50 whitespace-nowrap"
               >
-                <ArticleCard article={article} featured={true} />
-              </div>
+                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+              </button>
+            </div>
+          </form>
+          
+          <p className="text-sm text-gray-500">
+            No spam. Unsubscribe at any time.
+          </p>
+
+          <div className="mt-12">
+            <a href="#articles" className="inline-flex items-center text-[#FF4D00] hover:text-[#E64500]">
+              Explore articles
+              <FiArrowDown className="ml-2 animate-bounce" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Articles */}
+      <section id="articles" className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-8">Featured Research</h2>
+          
+          <div className="space-y-8">
+            {featuredArticles.map((article) => (
+              <article 
+                key={article.id} 
+                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
+              >
+                <div className="flex items-center text-sm text-gray-500 mb-2">
+                  <span>{article.date}</span>
+                  <span className="mx-2">|</span>
+                  <span className="font-medium">{article.category}</span>
+                </div>
+                <h3 className="text-xl font-bold text-[#001F3F] mb-3 hover:text-[#FF4D00] transition-colors duration-200">
+                  {article.title}
+                </h3>
+                <p className="text-gray-600 mb-4">{article.summary}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <FiClock className="mr-1" size={14} />
+                    <span>{article.readTime}</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Source: <span className="font-medium">{article.source}</span>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Link 
+                    href="#" 
+                    className="inline-flex items-center text-[#FF4D00] font-medium hover:text-[#E64500]"
+                  >
+                    Read more
+                    <FiArrowRight className="ml-2" />
+                  </Link>
+                </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Recent Articles Section */}
-      <section className="py-20 bg-neutral-50 relative">
+      {/* Recent Articles */}
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-12">
-            <div>
-              <h2 className="font-heading text-4xl text-secondary uppercase font-bold mb-2 tracking-tight">
-                Latest Updates
-              </h2>
-              <div className="h-1 w-24 bg-accent"></div>
-            </div>
-            
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">Latest Updates</h2>
             <Link 
               href="/archive" 
-              className="btn btn-outline flex items-center group"
+              className="inline-flex items-center text-[#FF4D00] font-medium hover:text-[#E64500]"
             >
-              View All Articles
-              <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+              View all articles
+              <FiArrowRight className="ml-2" />
             </Link>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-x-12 gap-y-16">
-            {recentArticles.map((article, index) => (
-              <div 
-                key={article.id}
-                data-animate-id={`recent-${index}`}
-                className={`transition-all duration-1000 delay-${index * 150} transform ${
-                  isAnimated(`recent-${index}`) ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-                }`}
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            {recentArticles.map((article) => (
+              <article 
+                key={article.id} 
+                className="bg-gray-50 p-5 rounded-lg hover:shadow-md transition-shadow duration-200"
               >
-                <ArticleCard article={article} />
-              </div>
+                <div className="flex items-center text-sm text-gray-500 mb-2">
+                  <span>{article.date}</span>
+                  <span className="mx-2">|</span>
+                  <span className="font-medium">{article.category}</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#001F3F] mb-3 hover:text-[#FF4D00] transition-colors duration-200">
+                  {article.title}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <FiClock className="mr-1" size={14} />
+                    <span>{article.readTime}</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Source: <span className="font-medium">{article.source}</span>
+                  </div>
+                </div>
+              </article>
             ))}
           </div>
         </div>
-        
-        {/* Diagonal section divider */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-white transform -skew-y-2 translate-y-8"></div>
       </section>
 
       {/* Newsletter CTA */}
-      <section className="py-20 bg-white relative">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-secondary text-white p-12 relative overflow-hidden">
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-40 h-40 bg-primary opacity-30 rotate-45 transform translate-x-1/2 -translate-y-1/2"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent opacity-20 rotate-45 transform -translate-x-1/2 translate-y-1/2"></div>
-            
-            <div className="relative z-10 text-center">
-              <h2 className="font-heading text-4xl uppercase font-bold mb-6 tracking-tight">
-                Never Miss <span className="text-accent">Important</span> Research
-              </h2>
-              
-              <p className="text-xl mb-8 max-w-2xl mx-auto">
-                Stay informed with the latest geoscience discoveries, trends, and research summaries delivered directly to your inbox.
-              </p>
-
-              <div className="max-w-md mx-auto">
-                <SubscriptionForm buttonText="Join Now" />
+          <div className="bg-[#001F3F] text-white p-10 rounded-lg max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl font-bold mb-4">Never Miss Important Research</h2>
+            <p className="mb-6">
+              Stay informed with the latest geoscience discoveries, trends, and research summaries delivered directly to your inbox.
+            </p>
+            <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-grow px-4 py-3 border-0 rounded-md text-gray-800 focus:ring-2 focus:ring-[#FFCC00]"
+                  placeholder="Enter your email"
+                  required
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-6 py-3 bg-[#FFCC00] hover:bg-[#E6B800] text-[#001F3F] font-medium rounded-md transition duration-200 disabled:opacity-50 whitespace-nowrap"
+                >
+                  {isSubmitting ? 'Subscribing...' : 'Join Now'}
+                </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </section>
-    </Layout>
+
+      {/* Section divider */}
+      <div className="section-divider w-full"></div>
+
+      {/* Footer */}
+      <footer className="bg-[#001F3F] text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid md:grid-cols-4 gap-8">
+            <div>
+              <div className="text-2xl font-bold mb-4">GeoBit</div>
+              <p className="text-gray-400 mb-6">
+                A TLDR-style newsletter for geoscientists with the latest research and industry news.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4">Newsletters</h3>
+              <ul className="space-y-2">
+                <li><Link href="/newsletters/research" className="text-gray-400 hover:text-white">Research Highlights</Link></li>
+                <li><Link href="/newsletters/industry" className="text-gray-400 hover:text-white">Industry News</Link></li>
+                <li><Link href="/newsletters/tools" className="text-gray-400 hover:text-white">Tools & Technology</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4">Company</h3>
+              <ul className="space-y-2">
+                <li><Link href="/about" className="text-gray-400 hover:text-white">About Us</Link></li>
+                <li><Link href="/advertise" className="text-gray-400 hover:text-white">Advertise</Link></li>
+                <li><Link href="/contact" className="text-gray-400 hover:text-white">Contact</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold mb-4">Legal</h3>
+              <ul className="space-y-2">
+                <li><Link href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
+            <p>&copy; {new Date().getFullYear()} GeoBit. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
