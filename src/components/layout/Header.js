@@ -1,131 +1,157 @@
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { FiMenu, FiX } from 'react-icons/fi';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 
-export default function Header() {
+const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const router = useRouter();
 
-  // Handle scroll effect for header
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 10);
     };
-
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white shadow-md py-2' : 'bg-transparent py-6'
+    <header className={`sticky top-0 z-50 transition-all ${
+      isScrolled ? 'bg-white shadow-sm' : 'bg-white'
     }`}>
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="relative z-10">
-            <span className="font-heading text-3xl font-bold text-secondary tracking-tight uppercase">
-              Geo<span className="text-primary">Bit</span>
-            </span>
-          </Link>
-
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center py-4">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link href="/" className="flex items-center">
+              <span className="text-2xl font-bold text-gray-900">GeoBit</span>
+            </Link>
+          </div>
+          
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             <Link 
               href="/newsletters" 
-              className="font-heading text-secondary hover:text-primary uppercase text-sm tracking-wide font-bold transition-all duration-300 py-2 relative"
+              className={`text-base font-medium ${
+                router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/') 
+                  ? 'text-blue-600' 
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
             >
               Newsletters
-              <span className="absolute bottom-0 left-0 w-0 h-1 bg-accent transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link 
-              href="/archive" 
-              className="font-heading text-secondary hover:text-primary uppercase text-sm tracking-wide font-bold transition-all duration-300 py-2 relative"
+              href="/categories" 
+              className={`text-base font-medium ${
+                router.pathname === '/categories' || router.pathname.startsWith('/categories/') 
+                  ? 'text-blue-600' 
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
             >
-              Archive
-              <span className="absolute bottom-0 left-0 w-0 h-1 bg-accent transition-all duration-300 group-hover:w-full"></span>
+              Categories
             </Link>
             <Link 
-              href="/about" 
-              className="font-heading text-secondary hover:text-primary uppercase text-sm tracking-wide font-bold transition-all duration-300 py-2 relative"
+              href="/advertise" 
+              className={`text-base font-medium ${
+                router.pathname === '/advertise' 
+                  ? 'text-blue-600' 
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
             >
-              About
-              <span className="absolute bottom-0 left-0 w-0 h-1 bg-accent transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-            <Link 
-              href="/subscribe" 
-              className="btn btn-primary"
-            >
-              Subscribe
+              Advertise
             </Link>
           </nav>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button 
-              onClick={toggleMenu}
-              className="text-secondary hover:text-primary focus:outline-none transition-all duration-300"
-              aria-label="Toggle menu"
+          {/* Subscribe Button */}
+          <div className="hidden md:block">
+            <Link 
+              href="/subscribe"
+              className="ml-8 inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700"
             >
-              {isMenuOpen ? (
-                <FiX className="h-7 w-7" />
-              ) : (
-                <FiMenu className="h-7 w-7" />
-              )}
+              Subscribe
+            </Link>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden -mr-2 flex items-center">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <span className="sr-only">{isMenuOpen ? 'Close menu' : 'Open menu'}</span>
+              <svg
+                className={`${isMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg
+                className={`${isMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation Overlay */}
-        <div className={`fixed inset-0 bg-secondary z-40 transform transition-transform duration-500 ease-in-out ${
-          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}>
-          <div className="container mx-auto px-4 py-20">
-            <nav className="flex flex-col items-center space-y-10 mt-16">
-              <Link 
-                href="/newsletters" 
-                className="text-white hover:text-accent font-heading text-3xl uppercase font-bold transition-all duration-300"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Newsletters
-              </Link>
-              <Link 
-                href="/archive" 
-                className="text-white hover:text-accent font-heading text-3xl uppercase font-bold transition-all duration-300"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Archive
-              </Link>
-              <Link 
-                href="/about" 
-                className="text-white hover:text-accent font-heading text-3xl uppercase font-bold transition-all duration-300"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link 
-                href="/subscribe" 
-                className="mt-8 btn bg-accent text-secondary hover:bg-white uppercase font-bold text-xl px-8 py-4"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Subscribe
-              </Link>
-            </nav>
-          </div>
+      {/* Mobile Menu */}
+      <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}>
+        <div className="pt-2 pb-4 space-y-1 px-4 sm:px-6">
+          <Link
+            href="/newsletters"
+            className={`block py-2 ${
+              router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/') 
+                ? 'text-blue-600' 
+                : 'text-gray-700 hover:text-gray-900'
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Newsletters
+          </Link>
+          <Link
+            href="/categories"
+            className={`block py-2 ${
+              router.pathname === '/categories' || router.pathname.startsWith('/categories/') 
+                ? 'text-blue-600' 
+                : 'text-gray-700 hover:text-gray-900'
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Categories
+          </Link>
+          <Link
+            href="/advertise"
+            className={`block py-2 ${
+              router.pathname === '/advertise' 
+                ? 'text-blue-600' 
+                : 'text-gray-700 hover:text-gray-900'
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Advertise
+          </Link>
+          <Link
+            href="/subscribe"
+            className="block py-2 mt-4 w-full text-center bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Subscribe
+          </Link>
         </div>
       </div>
-      
-      {/* Colorful section divider */}
-      <div className="section-divider absolute bottom-0 left-0 w-full"></div>
     </header>
   );
-}
+};
+
+export default Header;
