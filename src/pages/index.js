@@ -74,21 +74,21 @@ export default function Home() {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="bg-dark py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold brand-header text-primary mb-6">
             GEOSCIENCE<br />IN 5 MINUTES DAILY
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-10">
-            Get the <span className="text-blue-600 font-bold">most important</span> earth science research and discoveries in a free daily email.
+          <p className="text-xl md:text-2xl text-light-muted max-w-3xl mx-auto mb-10">
+            Get the <span className="text-primary font-bold">most important</span> earth science research and discoveries in a free daily email.
           </p>
 
           <div className="max-w-md mx-auto mb-8">
-            <SubscriptionForm buttonText="Subscribe for Free" />
+            <SubscriptionForm buttonText="Subscribe for Free" theme="darker" />
           </div>
 
           <div className="mt-12">
-            <a href="#articles" className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
+            <a href="#articles" className="inline-flex items-center text-primary hover:opacity-90 font-medium">
               Explore articles
               <FiArrowDown className="ml-2 animate-bounce" />
             </a>
@@ -97,9 +97,9 @@ export default function Home() {
       </section>
 
       {/* Featured Articles */}
-      <section id="articles" className="py-16 bg-gray-50">
+      <section id="articles" className="py-16 bg-dark-lighter">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8 text-gray-900">Featured Research</h2>
+          <h2 className="text-3xl font-bold mb-8 text-primary">Featured Research</h2>
 
           <div className="grid md:grid-cols-3 gap-6">
             {featuredArticles.map((article) => (
@@ -110,13 +110,13 @@ export default function Home() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-dark">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Top Categories</h2>
+            <h2 className="text-3xl font-bold text-primary">Top Categories</h2>
             <Link
               href="/categories"
-              className="text-blue-600 font-medium hover:text-blue-700"
+              className="text-primary font-medium hover:opacity-90"
             >
               View all categories
             </Link>
@@ -132,11 +132,11 @@ export default function Home() {
               <Link
                 key={category.name}
                 href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
-                className="bg-white border border-gray-200 rounded-lg p-6 transition-shadow hover:shadow-md"
+                className="bg-dark-card border border-dark-border rounded-lg p-6 transition-shadow hover:shadow-dark-md hover:bg-dark-card-hover"
               >
                 <div className="text-3xl mb-2">{category.emoji}</div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{category.name}</h3>
-                <p className="text-sm text-gray-500">{category.count} articles</p>
+                <h3 className="text-lg font-bold text-light mb-1">{category.name}</h3>
+                <p className="text-sm text-light-muted">{category.count} articles</p>
               </Link>
             ))}
           </div>
@@ -144,13 +144,13 @@ export default function Home() {
       </section>
 
       {/* Recent Articles */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-dark-lighter">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Latest Updates</h2>
+            <h2 className="text-3xl font-bold text-primary">Latest Updates</h2>
             <Link
               href="/archive"
-              className="text-blue-600 font-medium hover:text-blue-700"
+              className="text-primary font-medium hover:opacity-90"
             >
               View all articles
             </Link>
@@ -165,15 +165,15 @@ export default function Home() {
       </section>
 
       {/* Newsletter CTA */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-dark">
         <div className="container mx-auto px-4">
-          <div className="bg-gray-900 text-white p-10 rounded-lg max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold mb-4">Never Miss Important Research</h2>
-            <p className="text-gray-300 mb-6">
+          <div className="bg-dark-light p-10 rounded-lg max-w-3xl mx-auto text-center border border-dark-border">
+            <h2 className="text-2xl font-bold mb-4 text-primary">Never Miss Important Research</h2>
+            <p className="text-light-muted mb-6">
               Stay informed with the latest geoscience discoveries, trends, and research summaries delivered directly to your inbox.
             </p>
             <div className="max-w-md mx-auto">
-              <SubscriptionForm buttonText="Join Now" theme="dark" />
+              <SubscriptionForm buttonText="Join Now" />
             </div>
           </div>
         </div>
