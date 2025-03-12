@@ -1,31 +1,10 @@
-import { useState } from 'react';
-import Head from 'next/head';
+import { FiArrowDown } from 'react-icons/fi';
 import Link from 'next/link';
-import { FiClock, FiArrowRight, FiArrowDown } from 'react-icons/fi';
 import Layout from '@/components/layout/Layout';
+import ArticleCard from '@/components/newsletter/ArticleCard';
+import SubscriptionForm from '@/components/newsletter/SubscriptionForm';
 
 export default function Home() {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleSubscribe = async (e) => {
-    e.preventDefault();
-
-    if (!email || !email.includes('@')) {
-      alert('Please enter a valid email address');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    // Simulating API call
-    setTimeout(() => {
-      alert('Thank you for subscribing!');
-      setEmail('');
-      setIsSubmitting(false);
-    }, 1000);
-  };
-
   // Sample geoscience news articles
   const featuredArticles = [
     {
@@ -33,7 +12,7 @@ export default function Home() {
       title: "New Study Reveals Ancient Sea Levels Were Higher Than Previously Thought",
       category: "Oceanography",
       date: "Mar 12",
-      readTime: "3 minute read",
+      readTime: "3 min read",
       summary: "Researchers found evidence suggesting sea levels during the last interglacial period were up to 3 meters higher than current estimates.",
       source: "Nature",
     },
@@ -42,7 +21,7 @@ export default function Home() {
       title: "Discovery of Rare Mineral Formation Challenges Current Volcanic Theories",
       category: "Volcanology",
       date: "Mar 12",
-      readTime: "4 minute read",
+      readTime: "4 min read",
       summary: "Unusual mineral deposits found in Indonesian volcano may require revisions to our understanding of magma chamber dynamics.",
       source: "Science",
     },
@@ -51,7 +30,7 @@ export default function Home() {
       title: "Climate Models Underestimated Arctic Ice Loss, New Data Shows",
       category: "Climate Science",
       date: "Mar 11",
-      readTime: "5 minute read",
+      readTime: "5 min read",
       summary: "Satellite measurements reveal Arctic ice is melting at rates faster than predicted by leading climate models, raising concerns about feedback loops.",
       source: "Geophysical Research Letters",
     }
@@ -63,7 +42,7 @@ export default function Home() {
       title: "Underground Water Reservoirs Found on Mars Signal Potential for Past Life",
       category: "Planetary Science",
       date: "Mar 11",
-      readTime: "6 minute read",
+      readTime: "6 min read",
       source: "NASA",
     },
     {
@@ -71,7 +50,7 @@ export default function Home() {
       title: "Advanced Seismic Monitoring Tool Shows Promise for Earthquake Prediction",
       category: "Seismology",
       date: "Mar 10",
-      readTime: "4 minute read",
+      readTime: "4 min read",
       source: "USGS",
     },
     {
@@ -79,57 +58,37 @@ export default function Home() {
       title: "Machine Learning Helps Identify New Mineral Deposits in Remote Locations",
       category: "Economic Geology",
       date: "Mar 10",
-      readTime: "3 minute read",
+      readTime: "3 min read",
       source: "Mining Journal",
     },
     {
       id: 7,
-      title: "Earth\'s Magnetic Field Reversal Could Happen Sooner Than Expected",
+      title: "Earth's Magnetic Field Reversal Could Happen Sooner Than Expected",
       category: "Geomagnetism",
       date: "Mar 9",
-      readTime: "5 minute read",
+      readTime: "5 min read",
       source: "Eos",
     }
   ];
 
   return (
-    <Layout title="Home" description="A TLDR-style newsletter for geoscientists with the latest research and industry news">
+    <Layout>
       {/* Hero Section */}
-      <section className="py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#001F3F] mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             GEOSCIENCE<br />IN 5 MINUTES DAILY
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Get the <span className="text-[#FF4D00] font-bold">most important</span> earth science research and discoveries in a free daily email.
+          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto mb-10">
+            Get the <span className="text-blue-600 font-bold">most important</span> earth science research and discoveries in a free daily email.
           </p>
 
-          <form onSubmit={handleSubscribe} className="max-w-md mx-auto mb-8">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-grow px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#FF4D00] focus:border-[#FF4D00]"
-                placeholder="Enter your email"
-                required
-              />
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-3 bg-[#FF4D00] hover:bg-[#E64500] text-white font-medium rounded-md transition duration-200 disabled:opacity-50 whitespace-nowrap"
-              >
-                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
-              </button>
-            </div>
-          </form>
-
-          <p className="text-sm text-gray-500">
-            No spam. Unsubscribe at any time.
-          </p>
+          <div className="max-w-md mx-auto mb-8">
+            <SubscriptionForm buttonText="Subscribe for Free" />
+          </div>
 
           <div className="mt-12">
-            <a href="#articles" className="inline-flex items-center text-[#FF4D00] hover:text-[#E64500]">
+            <a href="#articles" className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
               Explore articles
               <FiArrowDown className="ml-2 animate-bounce" />
             </a>
@@ -140,123 +99,85 @@ export default function Home() {
       {/* Featured Articles */}
       <section id="articles" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8">Featured Research</h2>
+          <h2 className="text-3xl font-bold mb-8 text-gray-900">Featured Research</h2>
 
-          <div className="space-y-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {featuredArticles.map((article) => (
-              <article
-                key={article.id}
-                className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
+              <ArticleCard key={article.id} article={article} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Categories Section */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Top Categories</h2>
+            <Link
+              href="/categories"
+              className="text-blue-600 font-medium hover:text-blue-700"
+            >
+              View all categories
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              { name: 'Climate Science', emoji: '🌡️', count: 42 },
+              { name: 'Oceanography', emoji: '🌊', count: 38 },
+              { name: 'Volcanology', emoji: '🌋', count: 31 },
+              { name: 'Seismology', emoji: '📈', count: 27 }
+            ].map((category) => (
+              <Link
+                key={category.name}
+                href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                className="bg-white border border-gray-200 rounded-lg p-6 transition-shadow hover:shadow-md"
               >
-                <div className="flex items-center text-sm text-gray-500 mb-2">
-                  <span>{article.date}</span>
-                  <span className="mx-2">|</span>
-                  <span className="font-medium">{article.category}</span>
-                </div>
-                <h3 className="text-xl font-bold text-[#001F3F] mb-3 hover:text-[#FF4D00] transition-colors duration-200">
-                  {article.title}
-                </h3>
-                <p className="text-gray-600 mb-4">{article.summary}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <FiClock className="mr-1" size={14} />
-                    <span>{article.readTime}</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Source: <span className="font-medium">{article.source}</span>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Link
-                    href="#"
-                    className="inline-flex items-center text-[#FF4D00] font-medium hover:text-[#E64500]"
-                  >
-                    Read more
-                    <FiArrowRight className="ml-2" />
-                  </Link>
-                </div>
-              </article>
+                <div className="text-3xl mb-2">{category.emoji}</div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">{category.name}</h3>
+                <p className="text-sm text-gray-500">{category.count} articles</p>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
       {/* Recent Articles */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Latest Updates</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Latest Updates</h2>
             <Link
               href="/archive"
-              className="inline-flex items-center text-[#FF4D00] font-medium hover:text-[#E64500]"
+              className="text-blue-600 font-medium hover:text-blue-700"
             >
               View all articles
-              <FiArrowRight className="ml-2" />
             </Link>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             {recentArticles.map((article) => (
-              <article
-                key={article.id}
-                className="bg-gray-50 p-5 rounded-lg hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="flex items-center text-sm text-gray-500 mb-2">
-                  <span>{article.date}</span>
-                  <span className="mx-2">|</span>
-                  <span className="font-medium">{article.category}</span>
-                </div>
-                <h3 className="text-lg font-bold text-[#001F3F] mb-3 hover:text-[#FF4D00] transition-colors duration-200">
-                  {article.title}
-                </h3>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <FiClock className="mr-1" size={14} />
-                    <span>{article.readTime}</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    Source: <span className="font-medium">{article.source}</span>
-                  </div>
-                </div>
-              </article>
+              <ArticleCard key={article.id} article={article} />
             ))}
           </div>
         </div>
       </section>
 
       {/* Newsletter CTA */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="bg-[#001F3F] text-white p-10 rounded-lg max-w-3xl mx-auto text-center">
+          <div className="bg-gray-900 text-white p-10 rounded-lg max-w-3xl mx-auto text-center">
             <h2 className="text-2xl font-bold mb-4">Never Miss Important Research</h2>
-            <p className="mb-6">
+            <p className="text-gray-300 mb-6">
               Stay informed with the latest geoscience discoveries, trends, and research summaries delivered directly to your inbox.
             </p>
-            <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-grow px-4 py-3 border-0 rounded-md text-gray-800 focus:ring-2 focus:ring-[#FFCC00]"
-                  placeholder="Enter your email"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-6 py-3 bg-[#FFCC00] hover:bg-[#E6B800] text-[#001F3F] font-medium rounded-md transition duration-200 disabled:opacity-50 whitespace-nowrap"
-                >
-                  {isSubmitting ? 'Subscribing...' : 'Join Now'}
-                </button>
-              </div>
-            </form>
+            <div className="max-w-md mx-auto">
+              <SubscriptionForm buttonText="Join Now" theme="dark" />
+            </div>
           </div>
         </div>
       </section>
-
-      {/* Section divider */}
-      <div className="section-divider w-full"></div>
     </Layout>
   );
 }
