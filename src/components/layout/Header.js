@@ -17,14 +17,14 @@ const Header = () => {
 
   return (
     <header className={`sticky top-0 z-50 transition-all ${
-      isScrolled ? 'bg-white shadow-sm' : 'bg-white'
+      isScrolled ? 'bg-dark-lighter shadow-dark-sm' : 'bg-dark'
     }`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-900">GeoBit</span>
+              <span className="text-2xl font-extrabold text-primary brand-header">GeoBit</span>
             </Link>
           </div>
           
@@ -34,8 +34,8 @@ const Header = () => {
               href="/newsletters" 
               className={`text-base font-medium ${
                 router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/') 
-                  ? 'text-blue-600' 
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'text-primary' 
+                  : 'text-light-muted hover:text-primary'
               }`}
             >
               Newsletters
@@ -44,8 +44,8 @@ const Header = () => {
               href="/categories" 
               className={`text-base font-medium ${
                 router.pathname === '/categories' || router.pathname.startsWith('/categories/') 
-                  ? 'text-blue-600' 
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'text-primary' 
+                  : 'text-light-muted hover:text-primary'
               }`}
             >
               Categories
@@ -54,8 +54,8 @@ const Header = () => {
               href="/advertise" 
               className={`text-base font-medium ${
                 router.pathname === '/advertise' 
-                  ? 'text-blue-600' 
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'text-primary' 
+                  : 'text-light-muted hover:text-primary'
               }`}
             >
               Advertise
@@ -66,7 +66,7 @@ const Header = () => {
           <div className="hidden md:block">
             <Link 
               href="/subscribe"
-              className="ml-8 inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700"
+              className="ml-8 inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-primary hover:bg-primary-light"
             >
               Subscribe
             </Link>
@@ -76,7 +76,7 @@ const Header = () => {
           <div className="md:hidden -mr-2 flex items-center">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-md text-light-muted hover:text-primary hover:bg-dark-light focus:outline-none"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <span className="sr-only">{isMenuOpen ? 'Close menu' : 'Open menu'}</span>
@@ -107,13 +107,13 @@ const Header = () => {
 
       {/* Mobile Menu */}
       <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}>
-        <div className="pt-2 pb-4 space-y-1 px-4 sm:px-6">
+        <div className="pt-2 pb-4 space-y-1 px-4 sm:px-6 bg-dark-lighter">
           <Link
             href="/newsletters"
             className={`block py-2 ${
               router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/') 
-                ? 'text-blue-600' 
-                : 'text-gray-700 hover:text-gray-900'
+                ? 'text-primary' 
+                : 'text-light-muted hover:text-primary'
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -123,8 +123,8 @@ const Header = () => {
             href="/categories"
             className={`block py-2 ${
               router.pathname === '/categories' || router.pathname.startsWith('/categories/') 
-                ? 'text-blue-600' 
-                : 'text-gray-700 hover:text-gray-900'
+                ? 'text-primary' 
+                : 'text-light-muted hover:text-primary'
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -134,8 +134,8 @@ const Header = () => {
             href="/advertise"
             className={`block py-2 ${
               router.pathname === '/advertise' 
-                ? 'text-blue-600' 
-                : 'text-gray-700 hover:text-gray-900'
+                ? 'text-primary' 
+                : 'text-light-muted hover:text-primary'
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -143,7 +143,7 @@ const Header = () => {
           </Link>
           <Link
             href="/subscribe"
-            className="block py-2 mt-4 w-full text-center bg-blue-600 text-white font-medium py-2 px-4 rounded-md hover:bg-blue-700"
+            className="block mt-4 w-full text-center bg-primary text-dark font-medium py-2 px-4 rounded-md hover:bg-primary-light"
             onClick={() => setIsMenuOpen(false)}
           >
             Subscribe
