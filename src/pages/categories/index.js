@@ -44,9 +44,9 @@ export default function Categories() {
         {
             id: 'geomagnetism',
             name: 'Geomagnetism',
-            description: 'Research on Earth's magnetic field, its changes, and impact on navigation',
-      count: 23
-    },
+            description: 'Research on Earth\'s magnetic field, its changes, and impact on navigation',
+            count: 23
+        },
         {
             id: 'hydrology',
             name: 'Hydrology',

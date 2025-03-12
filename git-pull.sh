@@ -20,5 +20,5 @@ git pull origin master || { echo "Failed to pull from GitHub! Exiting."; exit 1;
 echo "Pull complete!"
 
 # Step 6: Start Svelte Project
-echo "Starting Svelte Project..."
+echo "Starting NextJS Project..."
 npm run dev

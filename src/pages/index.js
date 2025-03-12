@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { FiClock, FiArrowRight, FiArrowDown } from 'react-icons/fi';
+import Layout from '@/components/layout/Layout';
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -9,14 +10,14 @@ export default function Home() {
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
-    
+
     if (!email || !email.includes('@')) {
       alert('Please enter a valid email address');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     // Simulating API call
     setTimeout(() => {
       alert('Thank you for subscribing!');
@@ -83,7 +84,7 @@ export default function Home() {
     },
     {
       id: 7,
-      title: "Earth's Magnetic Field Reversal Could Happen Sooner Than Expected",
+      title: "Earth\'s Magnetic Field Reversal Could Happen Sooner Than Expected",
       category: "Geomagnetism",
       date: "Mar 9",
       readTime: "5 minute read",
@@ -92,33 +93,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      <Head>
-        <title>GeoBit - TLDR for Geoscientists</title>
-        <meta name="description" content="A TLDR-style newsletter for geoscientists with the latest research and industry news" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      {/* Header/Navigation */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold">
-              <span className="text-[#001F3F]">Geo<span className="text-[#FF4D00]">Bit</span></span>
-            </Link>
-            <nav className="hidden md:flex space-x-6">
-              <Link href="/newsletters" className="text-gray-600 hover:text-gray-900">Newsletters</Link>
-              <Link href="/archive" className="text-gray-600 hover:text-gray-900">Archive</Link>
-              <Link href="/about" className="text-gray-600 hover:text-gray-900">About</Link>
-              <Link href="/subscribe" className="bg-[#FF4D00] text-white px-4 py-2 rounded font-medium hover:bg-[#E64500]">Subscribe</Link>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Section divider - TLDR.tech style */}
-      <div className="section-divider w-full"></div>
-
+    <Layout title="Home" description="A TLDR-style newsletter for geoscientists with the latest research and industry news">
       {/* Hero Section */}
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
@@ -148,7 +123,7 @@ export default function Home() {
               </button>
             </div>
           </form>
-          
+
           <p className="text-sm text-gray-500">
             No spam. Unsubscribe at any time.
           </p>
@@ -166,11 +141,11 @@ export default function Home() {
       <section id="articles" className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-8">Featured Research</h2>
-          
+
           <div className="space-y-8">
             {featuredArticles.map((article) => (
-              <article 
-                key={article.id} 
+              <article
+                key={article.id}
                 className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200"
               >
                 <div className="flex items-center text-sm text-gray-500 mb-2">
@@ -192,8 +167,8 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Link 
-                    href="#" 
+                  <Link
+                    href="#"
                     className="inline-flex items-center text-[#FF4D00] font-medium hover:text-[#E64500]"
                   >
                     Read more
@@ -211,19 +186,19 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold">Latest Updates</h2>
-            <Link 
-              href="/archive" 
+            <Link
+              href="/archive"
               className="inline-flex items-center text-[#FF4D00] font-medium hover:text-[#E64500]"
             >
               View all articles
               <FiArrowRight className="ml-2" />
             </Link>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             {recentArticles.map((article) => (
-              <article 
-                key={article.id} 
+              <article
+                key={article.id}
                 className="bg-gray-50 p-5 rounded-lg hover:shadow-md transition-shadow duration-200"
               >
                 <div className="flex items-center text-sm text-gray-500 mb-2">
@@ -282,46 +257,6 @@ export default function Home() {
 
       {/* Section divider */}
       <div className="section-divider w-full"></div>
-
-      {/* Footer */}
-      <footer className="bg-[#001F3F] text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="text-2xl font-bold mb-4">GeoBit</div>
-              <p className="text-gray-400 mb-6">
-                A TLDR-style newsletter for geoscientists with the latest research and industry news.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Newsletters</h3>
-              <ul className="space-y-2">
-                <li><Link href="/newsletters/research" className="text-gray-400 hover:text-white">Research Highlights</Link></li>
-                <li><Link href="/newsletters/industry" className="text-gray-400 hover:text-white">Industry News</Link></li>
-                <li><Link href="/newsletters/tools" className="text-gray-400 hover:text-white">Tools & Technology</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Company</h3>
-              <ul className="space-y-2">
-                <li><Link href="/about" className="text-gray-400 hover:text-white">About Us</Link></li>
-                <li><Link href="/advertise" className="text-gray-400 hover:text-white">Advertise</Link></li>
-                <li><Link href="/contact" className="text-gray-400 hover:text-white">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold mb-4">Legal</h3>
-              <ul className="space-y-2">
-                <li><Link href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} GeoBit. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </Layout>
   );
 }
