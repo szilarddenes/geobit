@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "light" }) => {
+const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" }) => {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -37,32 +37,38 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "light"
   const styles = {
     light: {
       container: 'bg-white',
-      input: 'border border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-gray-900',
-      button: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white',
+      input: 'border border-gray-300 focus:border-primary focus:ring-primary text-gray-900',
+      button: 'bg-primary hover:bg-primary-light focus:ring-primary-dark text-dark',
       text: 'text-gray-500'
     },
     dark: {
-      container: 'bg-gray-800',
-      input: 'border border-gray-600 focus:border-blue-400 focus:ring-blue-400 text-white bg-gray-700',
-      button: 'bg-blue-500 hover:bg-blue-600 focus:ring-blue-400 text-white',
-      text: 'text-gray-300'
+      container: 'bg-dark-card',
+      input: 'border border-dark-border focus:border-primary focus:ring-primary bg-dark-light text-light',
+      button: 'bg-primary hover:bg-primary-light focus:ring-primary-dark text-dark',
+      text: 'text-light-muted'
+    },
+    darker: {
+      container: 'bg-dark',
+      input: 'border border-dark-border focus:border-primary focus:ring-primary bg-dark-light text-light',
+      button: 'bg-primary hover:bg-primary-light focus:ring-primary-dark text-dark',
+      text: 'text-light-muted'
     }
   };
   
-  const currentStyle = styles[theme] || styles.light;
+  const currentStyle = styles[theme] || styles.dark;
 
   return (
     <div className={`${className} ${currentStyle.container} rounded-lg`}>
       {subscribed ? (
         <div className="text-center py-4">
-          <h3 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>
+          <h3 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-primary'} mb-2`}>
             Thank you for subscribing!
           </h3>
           <p className={currentStyle.text}>
             Keep an eye on your inbox for the latest geoscience updates.
           </p>
           <button 
-            className="mt-4 text-blue-600 hover:text-blue-500 font-medium"
+            className="mt-4 text-primary hover:opacity-90 font-medium"
             onClick={() => setSubscribed(false)}
           >
             Subscribe another email
