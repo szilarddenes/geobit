@@ -68,49 +68,51 @@ export default function Categories() {
       title="Geoscience Categories - GeoBit" 
       description="Browse our curated collection of research summaries by specific geoscience disciplines"
     >
-      <div className="container mx-auto px-4 py-12">
-        <header className="max-w-4xl mx-auto mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Geoscience Categories
-          </h1>
-          <p className="text-xl text-gray-600">
-            Browse our curated collection of research summaries by specific geoscience disciplines
-          </p>
-        </header>
+      <div className="bg-dark-lighter">
+        <div className="container mx-auto px-4 py-12">
+          <header className="max-w-4xl mx-auto mb-12">
+            <h1 className="text-3xl font-bold text-primary mb-4">
+              Geoscience Categories
+            </h1>
+            <p className="text-xl text-light-muted">
+              Browse our curated collection of research summaries by specific geoscience disciplines
+            </p>
+          </header>
 
-        <section className="max-w-4xl mx-auto mb-16">
-          <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
-            {categories.map((category) => (
-              <div key={category.id} className="border-b border-gray-200 pb-6">
-                <Link href={`/categories/${category.id}`} className="group">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 flex items-center">
-                    <span className="mr-2">{category.emoji}</span>
-                    {category.name}
-                  </h2>
-                </Link>
-                <p className="text-gray-600 mb-3">
-                  {category.description}
-                </p>
-                <div className="text-sm text-gray-500">
-                  {category.count} articles
+          <section className="max-w-4xl mx-auto mb-16">
+            <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
+              {categories.map((category) => (
+                <div key={category.id} className="border-b border-dark-border pb-6">
+                  <Link href={`/categories/${category.id}`} className="group">
+                    <h2 className="text-xl font-bold text-light mb-2 group-hover:text-primary flex items-center">
+                      <span className="mr-2">{category.emoji}</span>
+                      {category.name}
+                    </h2>
+                  </Link>
+                  <p className="text-light-muted mb-3">
+                    {category.description}
+                  </p>
+                  <div className="text-sm text-light-muted">
+                    {category.count} articles
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
 
-        <section className="max-w-4xl mx-auto mb-16 bg-gray-900 text-white rounded-lg p-8">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Subscribe to GeoBit for Free
-          </h2>
-          <p className="text-gray-300 mb-6">
-            Get daily summaries from all categories delivered directly to your inbox
-          </p>
+          <section className="max-w-4xl mx-auto mb-16 bg-dark-light rounded-lg p-8 border border-dark-border">
+            <h2 className="text-2xl font-bold text-primary mb-4">
+              Subscribe to GeoBit for Free
+            </h2>
+            <p className="text-light-muted mb-6">
+              Get daily summaries from all categories delivered directly to your inbox
+            </p>
 
-          <div className="max-w-lg">
-            <SubscriptionForm theme="dark" />
-          </div>
-        </section>
+            <div className="max-w-lg">
+              <SubscriptionForm theme="dark" />
+            </div>
+          </section>
+        </div>
       </div>
     </Layout>
   );
