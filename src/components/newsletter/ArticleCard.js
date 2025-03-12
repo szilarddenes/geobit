@@ -1,99 +1,82 @@
 import Link from 'next/link';
-import { FiClock, FiExternalLink, FiArrowRight } from 'react-icons/fi';
+import { FiClock, FiArrowRight } from 'react-icons/fi';
 
-export default function ArticleCard({ 
-  article, 
-  featured = false,
-  hideImage = false
-}) {
-  // Determine the appropriate styling based on whether it's featured
-  const titleClasses = featured 
-    ? 'font-heading text-3xl uppercase text-secondary group-hover:text-primary font-bold tracking-tight transition-all duration-300' 
-    : 'font-heading text-xl uppercase text-secondary group-hover:text-primary font-bold tracking-tight transition-all duration-300';
-
-  // Map category to emoji (like TLDR.tech does)
-  const categoryEmojis = {
-    'Oceanography': '🌊',
-    'Volcanology': '🌋',
-    'Climate Science': '🌡️',
-    'Planetary Science': '🪐',
-    'Seismology': '📈',
-    'Economic Geology': '💎',
-    'Geomagnetism': '🧲',
-    'Paleontology': '🦖',
-    'Geochemistry': '⚗️',
-    'Geophysics': '🔭',
-    'Hydrogeology': '💧',
-    'Remote Sensing': '🛰️',
-    'Petrology': '🪨',
-    'Mineralogy': '🔍',
-    'Structural Geology': '⛰️',
-    'Geomorphology': '🏔️',
-    'Stratigraphy': '📑',
-    'Geohazards': '⚠️',
-    'Soil Science': '🌱',
-  };
-
-  // Get emoji for category or use a default
-  const categoryEmoji = categoryEmojis[article.category] || '🔬';
-
+// Component to display emoji with a category
+const CategoryBadge = ({ category, emoji }) => {
   return (
-    <div className={`card group relative ${featured ? 'mb-12' : 'mb-6'}`}>
-      <Link href={article.url || '#'} className="block">
-        {!hideImage && article.imageUrl && (
-          <div className="mb-6 overflow-hidden image-zoom">
-            <img 
-              src={article.imageUrl} 
-              alt={article.title}
-              className="w-full h-64 object-cover"
-            />
-          </div>
-        )}
-        
-        {/* Category tag */}
-        <div className="absolute top-0 left-0 bg-primary text-white text-xs font-bold uppercase px-4 py-1 flex items-center">
-          <span className="mr-2">{categoryEmoji}</span>
-          <span>{article.category}</span>
-        </div>
-        
-        <div className="p-6">
-          <div className="flex items-center justify-between text-sm text-neutral-500 mb-3">
-            <span className="uppercase font-bold">{article.date}</span>
-            <div className="flex items-center">
-              <FiClock className="mr-1" size={14} />
-              <span>{article.readTime}</span>
-            </div>
-          </div>
-          
-          <h3 className={titleClasses}>
-            {article.title}
-          </h3>
-          
-          {article.summary && (
-            <p className="text-neutral-600 mt-4 mb-4 line-clamp-3">
-              {article.summary}
-            </p>
-          )}
-          
-          <div className="flex items-center justify-between mt-6">
-            {article.source && (
-              <span className="text-sm text-secondary flex items-center">
-                <span className="uppercase font-bold">Source:</span>
-                <span className="ml-2">{article.source}</span>
-                <FiExternalLink className="ml-1" size={14} />
-              </span>
-            )}
-            
-            <span className="text-primary font-bold flex items-center group-hover:translate-x-1 transition-transform duration-300">
-              Read More
-              <FiArrowRight className="ml-2" />
-            </span>
-          </div>
-        </div>
-      </Link>
-      
-      {/* Geometric accent line at bottom */}
-      <div className="h-1 w-full bg-accent absolute bottom-0 left-0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+    <div className="inline-flex items-center text-sm font-medium text-gray-800 bg-gray-100 rounded-full px-3 py-1">
+      <span className="mr-1">{emoji}</span>
+      <span>{category}</span>
     </div>
   );
-}
+};
+
+// Get emoji for category
+const getCategoryEmoji = (category) => {
+  const emojiMap = {
+    'Oceanography': '🌊',
+    'Climate Science': '🌡️',
+    'Volcanology': '🌋',
+    'Seismology': '📈',
+    'Planetary Science': '🪐',
+    'Economic Geology': '💎',
+    'Geomagnetism': '🧲',
+    'Hydrology': '💧'
+  };
+  
+  return emojiMap[category] || '🌍';
+};
+
+const ArticleCard = ({ article }) => {
+  const { id, title, category, date, readTime, summary, source, url } = article;
+  const emoji = getCategoryEmoji(category);
+  
+  return (
+    <article className="bg-white border border-gray-200 rounded-lg p-6 transition-shadow hover:shadow-md">
+      <div className="flex flex-col h-full">
+        {/* Category */}
+        <div className="mb-3">
+          <CategoryBadge category={category} emoji={emoji} />
+        </div>
+        
+        {/* Title */}
+        <h3 className="text-xl font-bold text-gray-900 mb-3 flex-grow">
+          <Link href={url || `/articles/${id}`} className="hover:text-blue-600 transition-colors">
+            {title}
+          </Link>
+        </h3>
+        
+        {/* Summary (if provided) */}
+        {summary && (
+          <p className="text-gray-600 mb-4 line-clamp-3">{summary}</p>
+        )}
+        
+        {/* Footer */}
+        <div className="mt-auto pt-4 flex items-center justify-between text-sm text-gray-500">
+          <div className="flex items-center">
+            <FiClock className="mr-1" size={14} />
+            <span>{readTime}</span>
+          </div>
+          <div>
+            {source && (
+              <span>Source: <span className="font-medium">{source}</span></span>
+            )}
+          </div>
+        </div>
+        
+        {/* Read More Link */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <Link
+            href={url || `/articles/${id}`}
+            className="inline-flex items-center text-blue-600 font-medium hover:text-blue-700"
+          >
+            Read more
+            <FiArrowRight className="ml-2" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+};
+
+export default ArticleCard;
