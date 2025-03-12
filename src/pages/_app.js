@@ -7,10 +7,18 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Head>
-        {/* Include Inter font from Google Fonts */}
+        {/* Force CSS reload - add cache busting */}
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
+        
+        {/* Use Inter font from Google Fonts since Square721 may not be loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        
+        {/* Fallback fonts */}
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet" />
         
         {/* Default meta tags */}
         <meta name="viewport" content="width=device-width, initial-scale=1" />
