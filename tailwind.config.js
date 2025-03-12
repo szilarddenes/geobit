@@ -1,129 +1,78 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx}',
-    './src/components/**/*.{js,ts,jsx,tsx}',
-    './src/app/**/*.{js,ts,jsx,tsx}',
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#FF4D00',
-          50: '#FFEFE6',
-          100: '#FFDBC6',
-          200: '#FFB999',
-          300: '#FF966C',
-          400: '#FF723F',
-          500: '#FF4D00', // Diadora bright orange-red
-          600: '#E64500',
-          700: '#CC3E00',
-          800: '#B33600',
-          900: '#992E00',
+          DEFAULT: '#ecd06f',
+          dark: '#c9ad4f',
+          light: '#f4df9c',
         },
-        secondary: {
-          DEFAULT: '#001F3F',
-          50: '#E6ECFF',
-          100: '#CCD9FF',
-          200: '#99B3FF',
-          300: '#668CFF',
-          400: '#3366FF',
-          500: '#001F3F', // Diadora deep navy blue
-          600: '#001C39',
-          700: '#001933',
-          800: '#00162D',
-          900: '#001226',
+        dark: {
+          DEFAULT: '#222222',
+          lighter: '#2d2d2d',
+          light: '#333333',
+          card: '#2d2d2d',
+          'card-hover': '#3a3a3a',
+          border: '#444444',
         },
-        accent: {
-          DEFAULT: '#FFCC00',
-          50: '#FFFCE6',
-          100: '#FFF8CC',
-          200: '#FFF099',
-          300: '#FFE866',
-          400: '#FFDF33',
-          500: '#FFCC00', // Diadora bright yellow accent
-          600: '#E6B800',
-          700: '#CCA300',
-          800: '#B38F00',
-          900: '#997A00',
-        },
-        neutral: {
-          50: '#F8F9FA',
-          100: '#F1F3F5',
-          200: '#E9ECEF',
-          300: '#DEE2E6',
-          400: '#CED4DA',
-          500: '#ADB5BD',
-          600: '#6C757D',
-          700: '#495057',
-          800: '#343A40',
-          900: '#212529',
+        light: {
+          DEFAULT: '#f5f5f5',
+          muted: '#cccccc',
         },
       },
       fontFamily: {
-        sans: [
-          'Helvetica Neue',
-          'Helvetica',
-          'Arial',
-          'ui-sans-serif',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'sans-serif',
-        ],
-        heading: [
-          'Square721',
-          'Arial Black',
-          'Arial Bold',
-          'Helvetica Bold',
-          'Impact',
-          'sans-serif',
-        ],
+        sans: ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
-      fontSize: {
-        '2xs': '0.625rem',
-        '7xl': '5rem',
-        '8xl': '6rem',
-        '9xl': '7rem',
+      boxShadow: {
+        'dark-sm': '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+        'dark-md': '0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)',
+        'dark-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2)',
       },
-      letterSpacing: {
-        tightest: '-.075em',
-        tighter: '-.05em',
-        tight: '-.025em',
-        normal: '0',
-        wide: '.025em',
-        wider: '.05em',
-        widest: '.1em',
-        'extra-wide': '.25em',
-      },
-      lineHeight: {
-        'extra-tight': '1.1',
-        'extra-loose': '2.5',
-      },
-      spacing: {
-        '72': '18rem',
-        '84': '21rem',
-        '96': '24rem',
-        '1/2': '50%',
-        '1/3': '33.333333%',
-        '2/3': '66.666667%',
-        '1/4': '25%',
-        '3/4': '75%',
-      },
-      maxWidth: {
-        '8xl': '88rem',
-        '9xl': '96rem',
-      },
-      borderRadius: {
-        'xl': '1rem',
-        '2xl': '2rem',
-      },
-      transitionDuration: {
-        '2000': '2000ms',
-      },
+      typography: (theme) => ({
+        dark: {
+          css: {
+            color: theme('colors.light.DEFAULT'),
+            h1: {
+              color: theme('colors.primary.DEFAULT'),
+            },
+            h2: {
+              color: theme('colors.primary.DEFAULT'),
+            },
+            h3: {
+              color: theme('colors.primary.DEFAULT'),
+            },
+            h4: {
+              color: theme('colors.primary.DEFAULT'),
+            },
+            strong: {
+              color: theme('colors.light.DEFAULT'),
+            },
+            a: {
+              color: theme('colors.primary.DEFAULT'),
+              '&:hover': {
+                color: theme('colors.primary.light'),
+              },
+            },
+            code: {
+              color: theme('colors.primary.DEFAULT'),
+            },
+            blockquote: {
+              color: theme('colors.light.muted'),
+              borderLeftColor: theme('colors.dark.border'),
+            },
+          },
+        },
+      }),
     },
   },
-  plugins: [],
-};
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
+  darkMode: 'class',
+}
