@@ -21,18 +21,14 @@ export default function Home() {
     setIsSubmitting(true);
     
     try {
-      // Add to Firestore
       await addDoc(collection(db, 'subscribers'), {
         email,
         status: 'active',
         createdAt: new Date()
       });
       
-      // Success
       toast.success('Thank you for subscribing!');
       setEmail('');
-      
-      // Redirect to confirmation page
       router.push('/subscribe/success');
     } catch (error) {
       console.error('Error subscribing:', error);
