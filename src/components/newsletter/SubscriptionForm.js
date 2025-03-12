@@ -3,10 +3,12 @@ import { useRouter } from 'next/router';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'react-toastify';
+import { FiArrowRight } from 'react-icons/fi';
 
 export default function SubscriptionForm({ buttonText = 'Subscribe', compact = false }) {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
   const router = useRouter();
 
   const handleSubscribe = async (e) => {
@@ -39,26 +41,54 @@ export default function SubscriptionForm({ buttonText = 'Subscribe', compact = f
 
   // Determine styling based on compact prop
   const containerClasses = compact 
-    ? 'flex flex-col sm:flex-row max-w-lg gap-3'
-    : 'flex flex-col sm:flex-row max-w-lg mx-auto gap-3';
+    ? 'relative z-10'
+    : 'relative z-10 max-w-lg mx-auto';
+    
+  const formClasses = compact
+    ? 'flex flex-col sm:flex-row items-stretch'
+    : 'flex flex-col items-stretch';
 
   return (
-    <form onSubmit={handleSubscribe} className={containerClasses}>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="flex-grow px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-        placeholder="Enter your email"
-        required
-      />
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-md transition duration-200 disabled:opacity-50 whitespace-nowrap"
-      >
-        {isSubmitting ? 'Subscribing...' : buttonText}
-      </button>
-    </form>
+    <div className={containerClasses}>
+      <form onSubmit={handleSubscribe} className={formClasses}>
+        <div className={`relative flex-grow mb-4 sm:mb-0 ${compact ? 'sm:mr-3' : ''}`}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            className={`w-full px-6 py-4 bg-white border-2 border-secondary transition-all duration-300 ${
+              inputFocused ? 'border-primary' : 'focus:border-primary'
+            }`}
+            placeholder="Enter your email"
+            required
+          />
+          
+          <div className={`absolute bottom-0 left-0 h-1 bg-accent transform origin-left transition-transform duration-500 ${
+            inputFocused ? 'w-full scale-x-100' : 'w-full scale-x-0'
+          }`}></div>
+        </div>
+        
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="btn btn-primary flex items-center justify-center"
+        >
+          <span className="uppercase font-heading tracking-wide">
+            {isSubmitting ? 'Subscribing...' : buttonText}
+          </span>
+          <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+        </button>
+      </form>
+      
+      {!compact && (
+        <div className="mt-3 text-center">
+          <p className="text-sm text-secondary">
+            No spam. Unsubscribe at any time.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
