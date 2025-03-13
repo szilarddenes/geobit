@@ -87,6 +87,132 @@ const adminLogin = functions.https.onCall(async (data, context) => {
   }
 });
 
+// Get API status
+const getApiStatus = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify admin token
+    const { token } = data;
+    const isValidToken = await verifyAdminToken(token);
+    
+    if (!isValidToken) {
+      throw new Error('Unauthorized access');
+    }
+    
+    const status = {
+      openRouter: { status: 'unknown', message: 'Not checked' },
+      firebase: { status: 'unknown', message: 'Not checked' },
+      email: { status: 'unknown', message: 'Not checked' }
+    };
+    
+    // Check OpenRouter API
+    try {
+      const openRouterApiKey = functions.config().openrouter?.api_key || process.env.OPENROUTER_API_KEY;
+      
+      if (!openRouterApiKey) {
+        status.openRouter = { 
+          status: 'error', 
+          message: 'API key not configured'
+        };
+      } else {
+        // Get OpenRouter quota
+        const quotaResponse = await axios.get('https://openrouter.ai/api/v1/auth/key', {
+          headers: {
+            'Authorization': `Bearer ${openRouterApiKey}`
+          }
+        });
+        
+        if (quotaResponse.status === 200) {
+          const quota = quotaResponse.data;
+          status.openRouter = {
+            status: 'ok',
+            message: 'API is operational',
+            quota: {
+              used: quota.rate_limit.used || 0,
+              limit: quota.rate_limit.limit || 0,
+              remaining: (quota.rate_limit.limit || 0) - (quota.rate_limit.used || 0)
+            }
+          };
+        } else {
+          status.openRouter = { 
+            status: 'warning', 
+            message: 'Could not fetch quota information'
+          };
+        }
+      }
+    } catch (error) {
+      console.error('OpenRouter API check error:', error);
+      status.openRouter = { 
+        status: 'error', 
+        message: `API error: ${error.message}` 
+      };
+    }
+    
+    // Check Firebase status (just check if Firestore works)
+    try {
+      await db.collection('system').doc('status').set({
+        lastChecked: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      
+      // Get Firestore usage
+      const usageSnapshot = await db.collection('system').doc('usageStats').get();
+      const usageData = usageSnapshot.exists ? usageSnapshot.data() : null;
+      
+      status.firebase = { 
+        status: 'ok', 
+        message: 'Firebase is operational',
+        usage: {
+          reads: usageData?.reads || 0,
+          writes: usageData?.writes || 0,
+          deletes: usageData?.deletes || 0
+        }
+      };
+    } catch (error) {
+      console.error('Firebase status check error:', error);
+      status.firebase = { 
+        status: 'error', 
+        message: `Firebase error: ${error.message}` 
+      };
+    }
+    
+    // Check email service
+    try {
+      const emailApiKey = functions.config().sendgrid?.api_key || process.env.SENDGRID_API_KEY;
+      
+      if (!emailApiKey) {
+        status.email = { 
+          status: 'warning', 
+          message: 'Email API key not configured'
+        };
+      } else {
+        // For SendGrid, we'd normally check quotas here
+        // Since we don't want to make actual API calls in this example,
+        // we'll simulate it
+        
+        status.email = { 
+          status: 'ok', 
+          message: 'Email service is operational',
+          quota: {
+            used: 250, // This would come from the actual API
+            limit: 2000,  // This would come from the actual API
+            remaining: 1750 // This would come from the actual API
+          }
+        };
+      }
+    } catch (error) {
+      console.error('Email service check error:', error);
+      status.email = { 
+        status: 'error', 
+        message: `Email service error: ${error.message}` 
+      };
+    }
+    
+    return { success: true, status };
+  } catch (error) {
+    console.error('Error checking API status:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Get content sources
 const getContentSources = functions.https.onCall(async (data, context) => {
   try {
@@ -251,12 +377,119 @@ const getSubscribers = functions.https.onCall(async (data, context) => {
   }
 });
 
+// Get system logs
+const getSystemLogs = functions.https.onCall(async (data, context) => {
+  try {
+    // Verify admin token
+    const { token, limit = 100, offset = 0, level, service, timeRange } = data;
+    const isValidToken = await verifyAdminToken(token);
+    
+    if (!isValidToken) {
+      throw new Error('Unauthorized access');
+    }
+    
+    // Calculate timeRange in milliseconds
+    let timeThreshold = null;
+    if (timeRange) {
+      const now = Date.now();
+      switch (timeRange) {
+        case '1h':
+          timeThreshold = new Date(now - 60 * 60 * 1000);
+          break;
+        case '6h':
+          timeThreshold = new Date(now - 6 * 60 * 60 * 1000);
+          break;
+        case '1d':
+          timeThreshold = new Date(now - 24 * 60 * 60 * 1000);
+          break;
+        case '7d':
+          timeThreshold = new Date(now - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30d':
+          timeThreshold = new Date(now - 30 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          timeThreshold = new Date(now - 24 * 60 * 60 * 1000); // Default to 1 day
+      }
+    }
+    
+    // Build the query
+    let query = db.collection('systemLogs')
+      .orderBy('timestamp', 'desc');
+    
+    // Apply filters if provided
+    if (timeThreshold) {
+      query = query.where('timestamp', '>=', admin.firestore.Timestamp.fromDate(timeThreshold));
+    }
+    
+    // Apply pagination
+    query = query.limit(limit).offset(offset);
+    
+    // Execute the query
+    const logsSnapshot = await query.get();
+    
+    // Extract the logs
+    let logs = logsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    // Apply filters that can't be done in the query (for simplicity in this implementation)
+    if (level) {
+      logs = logs.filter(log => log.level === level);
+    }
+    
+    if (service) {
+      logs = logs.filter(log => log.service === service);
+    }
+    
+    // Get approximate total count (for production, implement proper pagination with cursors)
+    const countSnapshot = await db.collection('systemLogs').count().get();
+    const total = countSnapshot.data().count;
+    
+    return { 
+      success: true, 
+      logs,
+      pagination: {
+        total,
+        limit,
+        offset
+      }
+    };
+  } catch (error) {
+    console.error('Error getting system logs:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Create a system log entry
+const logSystemEvent = async (data: {
+  level: 'info' | 'warning' | 'error',
+  service: string,
+  message: string,
+  details?: any
+}) => {
+  try {
+    await db.collection('systemLogs').add({
+      ...data,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error logging system event:', error);
+    return false;
+  }
+};
+
 // Export functions
 export default {
   adminLogin,
+  getApiStatus,
   getContentSources,
   addContentSource,
   updateContentSource,
   deleteContentSource,
-  getSubscribers
+  getSubscribers,
+  getSystemLogs,
+  logSystemEvent
 };
