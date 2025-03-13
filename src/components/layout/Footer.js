@@ -34,28 +34,23 @@ const Footer = () => {
             <h3 className="text-lg font-semibold text-primary mb-4">Newsletters</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/newsletters" className="text-light-muted hover:text-primary">
+                <Link href="/newsletters" className="text-light-muted hover:text-primary font-bold">
                   All Newsletters
                 </Link>
               </li>
               <li>
-                <Link href="/categories/climate-science" className="text-light-muted hover:text-primary">
+                <Link href="/newsletters#climate-science" className="text-light-muted hover:text-primary font-bold">
                   Climate Science
                 </Link>
               </li>
               <li>
-                <Link href="/categories/oceanography" className="text-light-muted hover:text-primary">
+                <Link href="/newsletters#oceanography" className="text-light-muted hover:text-primary font-bold">
                   Oceanography
                 </Link>
               </li>
               <li>
-                <Link href="/categories/volcanology" className="text-light-muted hover:text-primary">
+                <Link href="/newsletters#volcanology" className="text-light-muted hover:text-primary font-bold">
                   Volcanology
-                </Link>
-              </li>
-              <li>
-                <Link href="/categories" className="text-light-muted hover:text-primary">
-                  View All Categories
                 </Link>
               </li>
             </ul>
@@ -66,17 +61,17 @@ const Footer = () => {
             <h3 className="text-lg font-semibold text-primary mb-4">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/advertise" className="text-light-muted hover:text-primary">
+                <Link href="/advertise" className="text-light-muted hover:text-primary font-bold">
                   Advertise
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-light-muted hover:text-primary">
+                <Link href="/privacy" className="text-light-muted hover:text-primary font-bold">
                   Privacy
                 </Link>
               </li>
               <li>
-                <Link href="/archive" className="text-light-muted hover:text-primary">
+                <Link href="/archive" className="text-light-muted hover:text-primary font-bold">
                   Archive
                 </Link>
               </li>
