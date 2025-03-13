@@ -27,10 +27,10 @@
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/admin/content/collect": [
+    "/admin/dashboard": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/admin/content/collect.js"
+      "static/chunks/pages/admin/dashboard.js"
     ]
   },
   "ampFirstPages": []

@@ -1,34 +1,28 @@
 module.exports = {
-    root: true,
-    env: {
-        es6: true,
-        node: true,
+  env: {
+    es6: true,
+    node: true,
+  },
+  parserOptions: {
+    "ecmaVersion": 2018,
+  },
+  extends: [
+    "eslint:recommended",
+    "google",
+  ],
+  rules: {
+    "no-restricted-globals": ["error", "name", "length"],
+    "prefer-arrow-callback": "error",
+    "quotes": ["error", "double", {"allowTemplateLiterals": true}],
+  },
+  overrides: [
+    {
+      files: ["**/*.spec.*"],
+      env: {
+        mocha: true,
+      },
+      rules: {},
     },
-    extends: [
-        "eslint:recommended",
-        "google",
-    ],
-    rules: {
-        quotes: ["error", "double"],
-    },
-    parserOptions: {
-        ecmaVersion: 2020,
-    },
-    overrides: [
-        {
-            files: ["*.ts"],
-            extends: [
-                "eslint:recommended",
-                "plugin:@typescript-eslint/recommended",
-            ],
-            parser: "@typescript-eslint/parser",
-            plugins: [
-                "@typescript-eslint",
-            ],
-            rules: {
-                "@typescript-eslint/no-explicit-any": "off",
-                "quotes": ["error", "single"],
-            },
-        },
-    ],
-}; 
+  ],
+  globals: {},
+};
