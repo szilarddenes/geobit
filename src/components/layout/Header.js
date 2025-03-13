@@ -36,10 +36,10 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 justify-start ml-4">
             <Link
               href="/newsletters"
-              className={`text-base font-medium ${router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/')
+              className={`text-lg font-bold ${router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/')
                 ? 'text-primary'
                 : 'text-light-muted hover:text-primary'
                 }`}
@@ -47,17 +47,8 @@ const Header = () => {
               Newsletters
             </Link>
             <Link
-              href="/categories"
-              className={`text-base font-medium ${router.pathname === '/categories' || router.pathname.startsWith('/categories/')
-                ? 'text-primary'
-                : 'text-light-muted hover:text-primary'
-                }`}
-            >
-              Categories
-            </Link>
-            <Link
               href="/advertise"
-              className={`text-base font-medium ${router.pathname === '/advertise'
+              className={`text-lg font-bold ${router.pathname === '/advertise'
                 ? 'text-primary'
                 : 'text-light-muted hover:text-primary'
                 }`}
@@ -70,7 +61,7 @@ const Header = () => {
           <div className="hidden md:block">
             <Link
               href="/subscribe"
-              className="ml-8 inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-dark bg-primary hover:bg-primary-light"
+              className="ml-8 inline-flex items-center justify-center px-6 py-2 border border-transparent rounded-md shadow-sm text-base font-bold text-dark bg-primary hover:bg-primary-light"
             >
               Subscribe
             </Link>
@@ -114,7 +105,7 @@ const Header = () => {
         <div className="pt-2 pb-4 space-y-1 px-4 sm:px-6 bg-dark-lighter">
           <Link
             href="/newsletters"
-            className={`block py-2 ${router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/')
+            className={`block py-2 font-bold text-lg ${router.pathname === '/newsletters' || router.pathname.startsWith('/newsletters/')
               ? 'text-primary'
               : 'text-light-muted hover:text-primary'
               }`}
@@ -123,18 +114,8 @@ const Header = () => {
             Newsletters
           </Link>
           <Link
-            href="/categories"
-            className={`block py-2 ${router.pathname === '/categories' || router.pathname.startsWith('/categories/')
-              ? 'text-primary'
-              : 'text-light-muted hover:text-primary'
-              }`}
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Categories
-          </Link>
-          <Link
             href="/advertise"
-            className={`block py-2 ${router.pathname === '/advertise'
+            className={`block py-2 font-bold text-lg ${router.pathname === '/advertise'
               ? 'text-primary'
               : 'text-light-muted hover:text-primary'
               }`}
@@ -144,7 +125,7 @@ const Header = () => {
           </Link>
           <Link
             href="/subscribe"
-            className="block mt-4 w-full text-center bg-primary text-dark font-medium py-2 px-4 rounded-md hover:bg-primary-light"
+            className="block mt-4 w-full text-center bg-primary text-dark font-bold py-2 px-4 rounded-md hover:bg-primary-light"
             onClick={() => setIsMenuOpen(false)}
           >
             Subscribe
