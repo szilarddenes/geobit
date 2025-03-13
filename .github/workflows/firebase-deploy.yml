@@ -28,7 +28,7 @@ jobs:
           # Add any environment variables needed for the build
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || 'geobit-959c9' }}
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
@@ -44,21 +44,28 @@ jobs:
           echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > /tmp/firebase-service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-service-account.json
 
-      # Update .firebaserc with explicit project ID
+      # Update .firebaserc with explicit hardcoded project ID
       - name: Create .firebaserc with explicit project ID
         run: |
           echo '{
             "projects": {
-              "default": "${{ secrets.FIREBASE_PROJECT_ID }}"
+              "default": "geobit-959c9"
             }
           }' > .firebaserc
           cat .firebaserc
 
-      # Deploy to Firebase using the GitHub action which handles authentication
+      # Using a simpler approach with explicit Firebase CLI commands
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # Deploy directly with explicit project ID
       - name: Deploy to Firebase
-        uses: w9jds/firebase-action@master
-        with:
-          args: deploy
-        env:
-          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+        run: |
+          if [ -n "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]; then
+            # Deploy with service account
+            export GOOGLE_APPLICATION_CREDENTIALS=/tmp/firebase-service-account.json
+            firebase deploy --project=geobit-959c9
+          else
+            # Deploy with non-interactive mode
+            firebase deploy --project=geobit-959c9 --non-interactive
+          fi
