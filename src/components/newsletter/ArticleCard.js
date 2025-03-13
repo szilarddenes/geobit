@@ -4,7 +4,7 @@ import { FiClock, FiArrowRight } from 'react-icons/fi';
 // Component to display emoji with a category
 const CategoryBadge = ({ category, emoji }) => {
   return (
-    <div className="inline-flex items-center text-sm font-medium text-primary bg-dark-light rounded-full px-3 py-1">
+    <div className="inline-flex items-center text-sm font-bold text-primary bg-dark-light rounded-full px-3 py-1">
       <span className="mr-1">{emoji}</span>
       <span>{category}</span>
     </div>
@@ -59,7 +59,7 @@ const ArticleCard = ({ article }) => {
           </div>
           <div>
             {source && (
-              <span>Source: <span className="font-medium">{source}</span></span>
+              <span>Source: <span className="font-bold">{source}</span></span>
             )}
           </div>
         </div>
@@ -68,7 +68,7 @@ const ArticleCard = ({ article }) => {
         <div className="mt-4 pt-4 border-t border-dark-border">
           <Link
             href={url || `/articles/${id}`}
-            className="inline-flex items-center text-primary font-medium hover:opacity-90"
+            className="inline-flex items-center text-primary font-bold hover:opacity-90"
           >
             Read more
             <FiArrowRight className="ml-2" />
