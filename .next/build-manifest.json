@@ -36,6 +36,26 @@
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/admin/newsletters.js"
+    ],
+    "/admin/newsletters/edit/[id]": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/admin/newsletters/edit/[id].js"
+    ],
+    "/advertise": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/advertise.js"
+    ],
+    "/newsletters": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/newsletters.js"
+    ],
+    "/subscribe": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/subscribe.js"
     ]
   },
   "ampFirstPages": []

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 
 const Header = () => {
@@ -24,13 +23,13 @@ const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0 -ml-3">
             <Link href="/" className="flex items-center">
-              <Image
+              <img
                 src="/logo3.svg"
                 alt="GeoBit Logo"
                 width={280}
                 height={90}
                 className="h-24 w-auto"
-                fetchpriority="high"
+                loading="eager"
               />
             </Link>
           </div>
