@@ -43,3 +43,5 @@ firebase-debug.log
 
 #keys
 /_keys
+
+/functions/node_modules
