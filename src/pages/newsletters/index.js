@@ -1,166 +1,146 @@
-import { useState } from 'react';
+import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
-import ArticleCard from '@/components/newsletter/ArticleCard';
 import SubscriptionForm from '@/components/newsletter/SubscriptionForm';
 
 export default function Newsletters() {
-  // Sample newsletters categorized by date
-  const newsletters = {
-    'March 2025': [
-      {
-        id: 'mar-12-2025',
-        title: 'Daily Update - March 12, 2025',
-        date: 'Mar 12, 2025',
-        articles: [
-          {
-            id: 1,
-            title: "New Study Reveals Ancient Sea Levels Were Higher Than Previously Thought",
-            category: "Oceanography",
-            date: "Mar 12",
-            readTime: "3 min read",
-            summary: "Researchers found evidence suggesting sea levels during the last interglacial period were up to 3 meters higher than current estimates.",
-            source: "Nature",
-          },
-          {
-            id: 2,
-            title: "Discovery of Rare Mineral Formation Challenges Current Volcanic Theories",
-            category: "Volcanology",
-            date: "Mar 12",
-            readTime: "4 min read",
-            summary: "Unusual mineral deposits found in Indonesian volcano may require revisions to our understanding of magma chamber dynamics.",
-            source: "Science",
-          }
-        ]
-      },
-      {
-        id: 'mar-11-2025',
-        title: 'Daily Update - March 11, 2025',
-        date: 'Mar 11, 2025',
-        articles: [
-          {
-            id: 3,
-            title: "Climate Models Underestimated Arctic Ice Loss, New Data Shows",
-            category: "Climate Science",
-            date: "Mar 11",
-            readTime: "5 min read",
-            summary: "Satellite measurements reveal Arctic ice is melting at rates faster than predicted by leading climate models, raising concerns about feedback loops.",
-            source: "Geophysical Research Letters",
-          },
-          {
-            id: 4,
-            title: "Underground Water Reservoirs Found on Mars Signal Potential for Past Life",
-            category: "Planetary Science",
-            date: "Mar 11",
-            readTime: "6 min read",
-            summary: "NASA's Perseverance rover has uncovered evidence of ancient subsurface water reservoirs that could have supported microbial life.",
-            source: "NASA",
-          }
-        ]
-      },
-      {
-        id: 'mar-10-2025',
-        title: 'Daily Update - March 10, 2025',
-        date: 'Mar 10, 2025',
-        articles: [
-          {
-            id: 5,
-            title: "Advanced Seismic Monitoring Tool Shows Promise for Earthquake Prediction",
-            category: "Seismology",
-            date: "Mar 10",
-            readTime: "4 min read",
-            summary: "A new AI-powered seismic monitoring system can detect subtle foreshocks with greater accuracy, potentially providing earlier warnings.",
-            source: "USGS",
-          },
-          {
-            id: 6,
-            title: "Machine Learning Helps Identify New Mineral Deposits in Remote Locations",
-            category: "Economic Geology",
-            date: "Mar 10",
-            readTime: "3 min read",
-            summary: "Geologists are using machine learning algorithms to identify promising mineral deposits in regions that were previously difficult to survey.",
-            source: "Mining Journal",
-          }
-        ]
-      }
-    ],
-    'February 2025': [
-      {
-        id: 'feb-28-2025',
-        title: 'Daily Update - February 28, 2025',
-        date: 'Feb 28, 2025',
-        articles: [
-          {
-            id: 9,
-            title: "Revolutionary Imaging Technique Visualizes Deep Earth Mantle Structures",
-            category: "Geophysics",
-            date: "Feb 28",
-            readTime: "4 min read",
-            summary: "A new seismic imaging technique has provided unprecedented views of structures in Earth's mantle, revealing complex convection patterns.",
-            source: "Science",
-          }
-        ]
-      }
-    ]
-  };
+  // Geoscience categories with emojis
+  const categories = [
+    {
+      id: 'hc-industry',
+      name: 'HC Industry',
+      emoji: '🛢️',
+      description: 'Latest developments in hydrocarbon exploration, production technologies, and market trends',
+      count: 58
+    },
+    {
+      id: 'geopolitics',
+      name: 'Geopolitics',
+      emoji: '🌍',
+      description: 'Analysis of global politics affecting energy resources, mineral rights, and international trade',
+      count: 47
+    },
+    {
+      id: 'oceanography',
+      name: 'Oceanography',
+      emoji: '🌊',
+      description: 'The latest research on ocean currents, marine ecosystems, and sea level changes',
+      count: 42
+    },
+    {
+      id: 'climate-science',
+      name: 'Climate Science',
+      emoji: '🌡️',
+      description: 'Studies on climate patterns, global warming effects, and atmospheric changes',
+      count: 38
+    },
+    {
+      id: 'volcanology',
+      name: 'Volcanology',
+      emoji: '🌋',
+      description: 'Discoveries about volcanic activity, magma composition, and eruption predictions',
+      count: 31
+    },
+    {
+      id: 'seismology',
+      name: 'Seismology',
+      emoji: '🔄',
+      description: 'Research on earthquakes, fault lines, and seismic monitoring technologies',
+      count: 27
+    },
+    {
+      id: 'planetary-science',
+      name: 'Planetary Science',
+      emoji: '🪐',
+      description: 'Exploration of other planets, their geology, and potential for sustaining life',
+      count: 35
+    },
+    {
+      id: 'economic-geology',
+      name: 'Economic Geology',
+      emoji: '💎',
+      description: 'Studies of mineral deposits, resource extraction, and sustainable mining practices',
+      count: 29
+    },
+    {
+      id: 'geomagnetism',
+      name: 'Geomagnetism',
+      emoji: '🧲',
+      description: 'Research on Earth\'s magnetic field, its changes, and impact on navigation',
+      count: 23
+    },
+    {
+      id: 'hydrology',
+      name: 'Hydrology',
+      emoji: '💧',
+      description: 'Studies of water systems, groundwater resources, and water cycle changes',
+      count: 33
+    },
+    {
+      id: 'renewable-energy',
+      name: 'Renewable Energy',
+      emoji: '☀️',
+      description: 'Advances in sustainable energy solutions, geothermal power, and clean tech',
+      count: 45
+    },
+    {
+      id: 'geological-engineering',
+      name: 'Geological Engineering',
+      emoji: '🏗️',
+      description: 'Innovations in construction materials, ground stability, and structural geology',
+      count: 26
+    }
+  ];
 
   return (
-    <Layout
-      title="Newsletters - GeoBit"
-      description="Browse our daily geoscience newsletter archives"
+    <Layout 
+      title="Geoscience Categories - GeoBit" 
+      description="Browse our curated collection of research summaries by specific geoscience disciplines"
     >
-      <div className="container mx-auto px-4 py-12">
-        <header className="max-w-4xl mx-auto mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Newsletter Archive
-          </h1>
-          <p className="text-xl text-gray-600 mb-6">
-            Browse our daily geoscience updates by date
-          </p>
-          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Never miss an update!
-            </h2>
-            <SubscriptionForm buttonText="Subscribe for Free" />
-          </div>
-        </header>
+      <div className="bg-dark-lighter">
+        <div className="container mx-auto px-4 py-12">
+          <header className="max-w-4xl mx-auto mb-12">
+            <h1 className="text-3xl font-bold text-primary mb-4">
+              Geoscience Categories
+            </h1>
+            <p className="text-xl text-light-muted">
+              Browse our curated collection of research summaries by specific geoscience disciplines
+            </p>
+          </header>
 
-        <section className="max-w-4xl mx-auto">
-          {Object.entries(newsletters).map(([month, issues]) => (
-            <div key={month} className="mb-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 border-b border-gray-200 pb-2">
-                {month}
-              </h2>
-              
-              <div className="space-y-10">
-                {issues.map((issue) => (
-                  <div key={issue.id} className="border-b border-gray-100 pb-10 last:border-b-0">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">
-                      {issue.title}
-                    </h3>
-                    <div className="text-sm text-gray-500 mb-6">
-                      {issue.date}
-                    </div>
-                    
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {issue.articles.map((article) => (
-                        <ArticleCard key={article.id} article={article} />
-                      ))}
-                    </div>
-                    
-                    <div className="mt-6 text-center">
-                      <a 
-                        href={`/newsletters/${issue.id}`}
-                        className="inline-block bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors"
-                      >
-                        View full newsletter
-                      </a>
-                    </div>
+          <section className="max-w-4xl mx-auto mb-16">
+            <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
+              {categories.map((category) => (
+                <div key={category.id} className="border-b border-dark-border pb-6">
+                  <Link href={`/categories/${category.id}`} className="group">
+                    <h2 className="text-xl font-bold text-light mb-2 group-hover:text-primary flex items-center">
+                      <span className="mr-3 text-3xl">{category.emoji}</span>
+                      {category.name}
+                    </h2>
+                  </Link>
+                  <p className="text-light-muted mb-3">
+                    {category.description}
+                  </p>
+                  <div className="text-sm text-light-muted">
+                    {category.count} articles
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </section>
+          </section>
+
+          <section className="max-w-4xl mx-auto mb-16 bg-dark-light rounded-lg p-8 border border-dark-border">
+            <h2 className="text-2xl font-bold text-primary mb-4">
+              Subscribe to GeoBit for Free
+            </h2>
+            <p className="text-light-muted mb-6">
+              Get daily summaries from all categories delivered directly to your inbox
+            </p>
+
+            <div className="max-w-lg">
+              <SubscriptionForm theme="dark" />
+            </div>
+          </section>
+        </div>
       </div>
     </Layout>
   );
