@@ -68,7 +68,7 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" 
             Keep an eye on your inbox for the latest geoscience updates.
           </p>
           <button
-            className="mt-4 text-primary hover:opacity-90 font-medium"
+            className="mt-4 text-primary hover:opacity-90 font-bold"
             onClick={() => setSubscribed(false)}
           >
             Subscribe another email
@@ -99,7 +99,7 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" 
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full px-4 py-3 rounded-md font-medium transition-colors ${currentStyle.button} disabled:opacity-50`}
+              className={`w-full px-4 py-3 rounded-md font-bold transition-colors ${currentStyle.button} disabled:opacity-50`}
             >
               {isSubmitting ? 'Subscribing...' : buttonText}
             </button>
