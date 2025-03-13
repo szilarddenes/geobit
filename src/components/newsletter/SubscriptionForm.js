@@ -8,21 +8,21 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Simple client-side validation
     if (!email || !email.includes('@')) {
       setError('Please enter a valid email address');
       return;
     }
-    
+
     setError('');
     setIsSubmitting(true);
-    
+
     try {
       // Simulating API call for subscription
       // In production, this would post to your API endpoint
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Success
       setSubscribed(true);
       setEmail('');
@@ -54,7 +54,7 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" 
       text: 'text-light-muted'
     }
   };
-  
+
   const currentStyle = styles[theme] || styles.dark;
 
   return (
@@ -67,7 +67,7 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" 
           <p className={currentStyle.text}>
             Keep an eye on your inbox for the latest geoscience updates.
           </p>
-          <button 
+          <button
             className="mt-4 text-primary hover:opacity-90 font-medium"
             onClick={() => setSubscribed(false)}
           >
@@ -91,11 +91,11 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" 
                 required
               />
             </div>
-            
+
             {error && (
               <p className="text-red-500 text-sm">{error}</p>
             )}
-            
+
             <button
               type="submit"
               disabled={isSubmitting}
@@ -103,7 +103,7 @@ const SubscriptionForm = ({ className, buttonText = "Subscribe", theme = "dark" 
             >
               {isSubmitting ? 'Subscribing...' : buttonText}
             </button>
-            
+
             <p className={`text-xs ${currentStyle.text} text-center`}>
               No spam, unsubscribe at any time. We value your privacy.
             </p>
