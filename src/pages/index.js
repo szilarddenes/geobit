@@ -88,7 +88,7 @@ export default function Home() {
           </div>
 
           <div className="mt-12">
-            <a href="#articles" className="inline-flex items-center text-primary hover:opacity-90 font-medium">
+            <a href="#articles" className="inline-flex items-center text-primary hover:opacity-90 font-bold text-lg">
               Explore articles
               <FiArrowDown className="ml-2 animate-bounce" />
             </a>
@@ -115,8 +115,8 @@ export default function Home() {
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-primary">Top Categories</h2>
             <Link
-              href="/categories"
-              className="text-primary font-medium hover:opacity-90"
+              href="/newsletters"
+              className="text-primary font-bold text-lg hover:opacity-90"
             >
               View all categories
             </Link>
@@ -131,7 +131,7 @@ export default function Home() {
             ].map((category) => (
               <Link
                 key={category.name}
-                href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}
+                href={`/newsletters#${category.name.toLowerCase().replace(/\s+/g, '-')}`}
                 className="bg-dark-card border border-dark-border rounded-lg p-6 transition-shadow hover:shadow-dark-md hover:bg-dark-card-hover"
               >
                 <div className="text-3xl mb-2">{category.emoji}</div>
@@ -150,7 +150,7 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-primary">Latest Updates</h2>
             <Link
               href="/archive"
-              className="text-primary font-medium hover:opacity-90"
+              className="text-primary font-bold text-lg hover:opacity-90"
             >
               View all articles
             </Link>
