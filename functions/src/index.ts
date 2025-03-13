@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import newsletterFunctions from './newsletter';
 import adminFunctions from './admin';
+import contentFunctions from './content';
 import * as dotenv from 'dotenv';
 
 // Load environment variables from .env file if present
@@ -19,6 +20,9 @@ export const newsletter = newsletterFunctions;
 // Export admin functions
 export const admin = adminFunctions;
 
+// Export content functions
+export const content = contentFunctions;
+
 // Example scheduled function to generate weekly newsletter
 export const generateWeeklyNewsletter = functions.pubsub
   .schedule('every monday 09:00')
@@ -30,6 +34,49 @@ export const generateWeeklyNewsletter = functions.pubsub
       return null;
     } catch (error) {
       console.error('Error generating weekly newsletter:', error);
+      return null;
+    }
+  });
+
+// Example scheduled function to collect content daily
+export const collectDailyContent = functions.pubsub
+  .schedule('every day 02:00')
+  .timeZone('America/New_York')
+  .onRun(async () => {
+    try {
+      // Get active content sources
+      const db = admin.firestore();
+      const sourcesSnapshot = await db.collection('contentSources')
+        .where('active', '==', true)
+        .get();
+      
+      const sourceIds = sourcesSnapshot.docs.map(doc => doc.id);
+      
+      if (sourceIds.length === 0) {
+        console.log('No active content sources found for daily collection');
+        return null;
+      }
+      
+      // Call the content collection function with all active sources
+      await contentFunctions.collectContentFromSources({
+        sourceIds,
+        token: 'internal-scheduled-task' // Special token for internal use
+      });
+      
+      return null;
+    } catch (error) {
+      console.error('Error collecting daily content:', error);
+      
+      // Log the error
+      const db = admin.firestore();
+      await db.collection('systemLogs').add({
+        level: 'error',
+        service: 'scheduler',
+        message: 'Daily content collection failed',
+        details: { error: error.message },
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
       return null;
     }
   });
