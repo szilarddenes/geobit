@@ -32,12 +32,23 @@ jobs:
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
 
       # Install dependencies in the functions directory
       - name: Install dependencies for Firebase Functions
         run: cd functions && npm ci
 
-      # Deploy to Firebase
+      # Create .firebaserc file with project ID from secrets
+      - name: Create .firebaserc
+        run: |
+          echo '{
+            "projects": {
+              "default": "${{ secrets.FIREBASE_PROJECT_ID }}"
+            }
+          }' > .firebaserc
+          cat .firebaserc
+
+      # Deploy to Firebase using CLI directly with explicit project ID
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

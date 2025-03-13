@@ -1,1 +1,7 @@
-{"/_document":"pages/_document.js","/_error":"pages/_error.js","/_app":"pages/_app.js","/admin/analytics":"pages/admin/analytics.html","/admin/dashboard":"pages/admin/dashboard.html","/admin":"pages/admin.html","/admin/logs":"pages/admin/logs.html","/admin/newsletters/edit/[id]":"pages/admin/newsletters/edit/[id].html","/admin/newsletters":"pages/admin/newsletters.html","/admin/sources/search":"pages/admin/sources/search.html","/advertise":"pages/advertise.html","/archive":"pages/archive.html","/categories":"pages/categories.html","/categories/[slug]":"pages/categories/[slug].html","/admin/content/collect":"pages/admin/content/collect.html","/newsletters":"pages/newsletters.html","/":"pages/index.html","/privacy":"pages/privacy.html","/subscribe":"pages/subscribe.html","/subscribe/success":"pages/subscribe/success.html","/404":"pages/404.html"}
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/_document": "pages/_document.js",
+  "/": "pages/index.js",
+  "/admin/content/collect": "pages/admin/content/collect.js"
+}
