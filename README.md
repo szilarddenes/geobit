@@ -6,11 +6,24 @@ A TLDR-style newsletter for geoscientists, providing concise summaries of the la
 
 GeoBit aggregates content from multiple geoscience sources, uses AI to generate concise summaries, and delivers regular digests to subscribers via email. The project follows a phased approach, starting with the newsletter system and later adding an AI research assistant (GeoBit Agent).
 
+## News Collection and Processing
+
+GeoBit utilizes Perplexity to actively search and collect the latest news from various reliable geoscience sources on the web. The AI system handles:
+
+- Web searching for relevant geoscience content using Perplexity
+- Filtering and selecting content from reliable scientific sources
+- Generating concise TLDR-style summaries
+- Categorizing content by topic and relevance
+- Automating the newsletter content pipeline
+
+This approach ensures fresh, high-quality content without needing direct API access to each news source.
+
 ## Tech Stack
 
 - **Frontend**: Next.js web application
 - **Backend**: Firebase (Firestore, Cloud Functions, Hosting)
 - **AI Processing**: OpenRouter API (access to AI models for summarization)
+- **Web Search**: Perplexity for content collection
 - **Email Delivery**: SendGrid/Mailchimp
 
 ## System Architecture
@@ -169,7 +182,7 @@ The admin dashboard is protected by a simple password system:
 ## Key Development Tasks
 
 1. **Content Collection System**
-   - Implement source scraping for geoscience content
+   - Implement Perplexity-powered web search for geoscience content
    - Set up content storage in Firestore
    - Create content management interface
 
