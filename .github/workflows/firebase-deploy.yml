@@ -8,10 +8,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -32,7 +28,7 @@ jobs:
           # Add any environment variables needed for the build
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
-          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || 'geobit-959c9' }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
@@ -42,56 +38,11 @@ jobs:
       - name: Install dependencies for Firebase Functions
         run: cd functions && npm ci
 
-      # Create firebase.json if it doesn't exist
-      - name: Ensure firebase.json exists
-        run: |
-          if [ ! -f "firebase.json" ]; then
-            echo '{
-              "hosting": {
-                "source": ".",
-                "ignore": [
-                  "firebase.json",
-                  "**/.*",
-                  "**/node_modules/**"
-                ],
-                "frameworksBackend": {
-                  "region": "us-central1"
-                }
-              },
-              "firestore": {
-                "rules": "firestore.rules",
-                "indexes": "firestore.indexes.json"
-              },
-              "functions": {
-                "source": "functions",
-                "runtime": "nodejs18"
-              }
-            }' > firebase.json
-          fi
-
-      # Update .firebaserc with explicit hardcoded project ID
-      - name: Create .firebaserc with explicit project ID
-        run: |
-          echo '{
-            "projects": {
-              "default": "geobit-959c9"
-            }
-          }' > .firebaserc
-          cat .firebaserc
-
-      # Authenticate with Google credentials
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-
-      # Deploy using Firebase CLI
+      # Deploy to Firebase
       - name: Deploy to Firebase
-        uses: google-github-actions/setup-gcloud@v1
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          project_id: 'geobit-959c9'
-
-      - name: Install Firebase CLI and deploy
-        run: |
-          npm install -g firebase-tools
-          firebase deploy --project=geobit-959c9 --only hosting
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
