@@ -40,12 +40,19 @@ const rawAddContentSource = httpsCallable(functions, 'admin-addContentSource');
 const rawUpdateContentSource = httpsCallable(functions, 'admin-updateContentSource');
 const rawDeleteContentSource = httpsCallable(functions, 'admin-deleteContentSource');
 const rawGetSubscribers = httpsCallable(functions, 'admin-getSubscribers');
+const rawGetApiStatus = httpsCallable(functions, 'admin-getApiStatus');
 
 // Newsletter functions - raw function calls
 const rawGenerateNewsletterOnDemand = httpsCallable(functions, 'newsletter-generateNewsletterOnDemand');
 const rawPublishNewsletter = httpsCallable(functions, 'newsletter-publishNewsletter');
 const rawGetNewsletter = httpsCallable(functions, 'newsletter-getNewsletter');
 const rawGetNewsletters = httpsCallable(functions, 'newsletter-getNewsletters');
+
+// Content management functions - raw function calls
+const rawCollectContentFromSources = httpsCallable(functions, 'content-collectContentFromSources');
+const rawSearchContentFromAI = httpsCallable(functions, 'content-searchContentFromAI');
+const rawGetContent = httpsCallable(functions, 'content-getContent');
+const rawSaveContent = httpsCallable(functions, 'content-saveContent');
 
 // Development data
 const devContentSources = [
@@ -80,6 +87,42 @@ export const adminLogin = async (data) => {
     }
 
     return { data: { success: false, error: 'Invalid password' } };
+  }
+};
+
+export const getApiStatus = async (data) => {
+  try {
+    return await rawGetApiStatus(data);
+  } catch (error) {
+    console.warn('Firebase getApiStatus error, using development fallback:', error);
+
+    // Development fallback
+    if (data.token && verifyAdminTokenLocally(data.token)) {
+      return { 
+        data: { 
+          success: true,
+          status: {
+            openRouter: { 
+              status: 'ok', 
+              message: 'Development mode - API simulated',
+              quota: { used: 25, limit: 100, remaining: 75 }
+            },
+            firebase: { 
+              status: 'ok', 
+              message: 'Development mode - Firebase simulated',
+              usage: { reads: 120, writes: 45, deletes: 10 }
+            },
+            email: { 
+              status: 'ok', 
+              message: 'Development mode - Email service simulated',
+              quota: { used: 250, limit: 2000, remaining: 1750 }
+            }
+          }
+        }
+      };
+    }
+
+    return { data: { success: false, error: 'Unauthorized access' } };
   }
 };
 
@@ -188,6 +231,77 @@ export const getSubscribers = async (data) => {
     // Development fallback
     if (data.token && verifyAdminTokenLocally(data.token)) {
       return { data: { success: true, subscribers: devSubscribers } };
+    }
+
+    return { data: { success: false, error: 'Unauthorized access' } };
+  }
+};
+
+// Content collection functions with development fallbacks
+export const collectContentFromSources = async (data) => {
+  try {
+    return await rawCollectContentFromSources(data);
+  } catch (error) {
+    console.warn('Firebase collectContentFromSources error, using development fallback:', error);
+
+    // Development fallback with simulated content collection
+    if (data.token && verifyAdminTokenLocally(data.token)) {
+      return { 
+        data: { 
+          success: true, 
+          message: 'Content collection simulated in development mode',
+          contentCount: 5,
+          sources: 2
+        }
+      };
+    }
+
+    return { data: { success: false, error: 'Unauthorized access' } };
+  }
+};
+
+export const searchContentFromAI = async (data) => {
+  try {
+    return await rawSearchContentFromAI(data);
+  } catch (error) {
+    console.warn('Firebase searchContentFromAI error, using development fallback:', error);
+
+    // Development fallback with simulated AI search results
+    if (data.token && verifyAdminTokenLocally(data.token)) {
+      // Simulate delay for AI processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate mock content based on query
+      const mockContent = [
+        {
+          id: 'dev-content-1',
+          title: `Research on ${data.query || 'Geology'}`,
+          source: 'Development Source',
+          url: 'https://example.com/article1',
+          publishedAt: new Date(),
+          summary: `This is a simulated summary about ${data.query || 'geoscience topics'} generated in development mode.`,
+          category: 'research',
+          interestScore: 85
+        },
+        {
+          id: 'dev-content-2',
+          title: `Latest News on ${data.query || 'Earth Sciences'}`,
+          source: 'Development Journal',
+          url: 'https://example.com/article2',
+          publishedAt: new Date(),
+          summary: `Here's another simulated summary about ${data.query || 'geoscience'} for testing purposes.`,
+          category: 'news',
+          interestScore: 72
+        }
+      ];
+
+      return { 
+        data: { 
+          success: true, 
+          content: mockContent,
+          message: 'AI search simulated in development mode'
+        }
+      };
     }
 
     return { data: { success: false, error: 'Unauthorized access' } };
