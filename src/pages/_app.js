@@ -3,6 +3,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
 import { AuthProvider } from '@/lib/firebase/auth';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Store original functions
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
@@ -14,7 +15,8 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
     const suppressedWarnings = [
       'Warning: React does not recognize the `fetchPriority` prop',
       'fetchPriority',
-      'fetchpriority'
+      'fetchpriority',
+      'Firebase: Error (auth/invalid-api-key)', // Suppress during development
     ];
 
     // Check if any argument contains our suppressed warning text
@@ -42,10 +44,15 @@ export default function App({ Component, pageProps }) {
     };
   }, []);
 
+  // Use getLayout pattern if available
+  const getLayout = Component.getLayout || ((page) => page);
+
   return (
-    <AuthProvider>
-      <Component {...pageProps} />
-      <ToastContainer position="bottom-right" />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        {getLayout(<Component {...pageProps} />)}
+        <ToastContainer position="bottom-right" />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

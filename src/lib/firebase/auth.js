@@ -1,6 +1,5 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import {
-    getAuth,
     signInWithPopup,
     signInWithRedirect,
     getRedirectResult,
@@ -10,24 +9,11 @@ import {
     onAuthStateChanged
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { getFirestore } from 'firebase/firestore';
-import { initializeApp, getApps } from 'firebase/app';
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID,
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.FIREBASE_MEASUREMENT_ID
-};
+// Import Firebase instances from our singleton implementation
+import { app, firebaseAuth as auth, firebaseDb as db } from './firebase-app';
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Initialize Google provider
 const googleProvider = new GoogleAuthProvider();
 
 // Check if a user has admin privileges
@@ -35,12 +21,16 @@ async function checkIfAdmin(user) {
     if (!user) return false;
 
     // List of admin emails - for production, store in Firestore or use custom claims
-    const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
-        .split(',')
+    const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',')
         .map(email => email.trim().toLowerCase());
 
     if (adminEmails.includes(user.email.toLowerCase())) {
         return true;
+    }
+
+    if (!db) {
+        console.error('Firebase Firestore not initialized');
+        return false;
     }
 
     try {
@@ -65,8 +55,16 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [authError, setAuthError] = useState(null);
 
     useEffect(() => {
+        if (!auth) {
+            console.error('Firebase auth not initialized');
+            setLoading(false);
+            setAuthError('Firebase authentication failed to initialize');
+            return () => { };
+        }
+
         // Check for redirect result on page load
         getRedirectResult(auth)
             .then((result) => {
@@ -76,6 +74,7 @@ export function AuthProvider({ children }) {
             })
             .catch((error) => {
                 console.error('Redirect sign-in error:', error);
+                setAuthError(error.message);
             });
 
         // Set up auth state listener
@@ -87,6 +86,12 @@ export function AuthProvider({ children }) {
                 // Check if user is an admin
                 const admin = await checkIfAdmin(user);
                 setIsAdmin(admin);
+
+                if (!db) {
+                    console.error('Firebase Firestore not initialized');
+                    setLoading(false);
+                    return;
+                }
 
                 // Save user to Firestore
                 try {
@@ -114,17 +119,26 @@ export function AuthProvider({ children }) {
 
     // Login with email and password
     const loginWithEmail = async (email, password) => {
+        if (!auth) {
+            throw new Error('Firebase auth not initialized');
+        }
+
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);
             return result.user;
         } catch (error) {
             console.error('Email login error:', error);
+            setAuthError(error.message);
             throw error;
         }
     };
 
     // Login with Google
     const loginWithGoogle = async (useRedirect = false) => {
+        if (!auth) {
+            throw new Error('Firebase auth not initialized');
+        }
+
         try {
             if (useRedirect) {
                 await signInWithRedirect(auth, googleProvider);
@@ -136,16 +150,22 @@ export function AuthProvider({ children }) {
             }
         } catch (error) {
             console.error('Google login error:', error);
+            setAuthError(error.message);
             throw error;
         }
     };
 
     // Logout
     const logout = async () => {
+        if (!auth) {
+            throw new Error('Firebase auth not initialized');
+        }
+
         try {
             await signOut(auth);
         } catch (error) {
             console.error('Logout error:', error);
+            setAuthError(error.message);
             throw error;
         }
     };
@@ -156,7 +176,8 @@ export function AuthProvider({ children }) {
         isAdmin,
         loginWithEmail,
         loginWithGoogle,
-        logout
+        logout,
+        authError
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

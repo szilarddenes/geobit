@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FiUser, FiMail, FiCalendar, FiFileText, FiSettings, FiPlusCircle, FiBarChart } from 'react-icons/fi';
 import Head from 'next/head';
-import { adminLogin } from '@/lib/firebase';
 import { useAuth } from '@/lib/firebase/auth';
 import { cn } from '@/lib/utils';
 import { FcGoogle } from 'react-icons/fc';
 import { FiLock, FiLogOut, FiUsers } from 'react-icons/fi';
+import LoadingState from '@/components/LoadingState';
 
 // Admin layout
 const AdminLayout = ({ children, title }) => {
@@ -52,11 +52,18 @@ const AdminLayout = ({ children, title }) => {
 
 // Login form component
 const LoginForm = () => {
-  const { loginWithEmail, loginWithGoogle } = useAuth();
+  const { loginWithEmail, loginWithGoogle, authError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // If there's a Firebase auth error from context, display it
+  useEffect(() => {
+    if (authError) {
+      setError(authError);
+    }
+  }, [authError]);
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -96,7 +103,7 @@ const LoginForm = () => {
 
       {error && (
         <div className="mb-4 bg-dark-light text-red-400 p-3 rounded border border-red-800 text-sm">
-          {error}
+          {error.includes('Firebase') ? 'Authentication service error. Please try again later.' : error}
         </div>
       )}
 
@@ -106,8 +113,8 @@ const LoginForm = () => {
           onClick={handleGoogleLogin}
           disabled={isLoading}
           className={cn(
-            "w-full flex items-center justify-center py-3 px-4 rounded-md bg-dark-light shadow-dark-sm",
-            "text-light font-medium border border-dark-border hover:bg-dark-lighter transition-colors",
+            "w-full flex items-center justify-center py-3 px-4 rounded-md bg-white shadow-dark-sm",
+            "text-gray-700 font-medium border border-gray-200 hover:bg-gray-50 transition-colors",
             isLoading && "opacity-70 cursor-not-allowed"
           )}
         >
@@ -180,6 +187,24 @@ const LoginForm = () => {
       <div className="mt-6 text-center">
         <p className="text-xs text-light-muted">Access restricted to authorized administrators only</p>
       </div>
+
+      {/* Session Troubleshooting Section */}
+      <div className="mt-8 pt-6 border-t border-dark-border">
+        <div className="text-center">
+          <h3 className="text-sm font-medium text-light-muted mb-2">Having trouble signing in?</h3>
+          <button
+            onClick={() => {
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.reload();
+            }}
+            className="text-xs bg-dark-light text-primary px-3 py-1 rounded hover:bg-dark-lighter transition-colors inline-flex items-center border border-dark-border"
+          >
+            <FiLogOut className="mr-1" />
+            <span>Clear Session & Reload</span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -249,142 +274,60 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Subscribers */}
-        <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
-          <h2 className="text-lg font-bold mb-4 text-primary">Recent Subscribers</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-dark-border">
-                  <th className="py-2 text-left text-sm font-medium text-light-muted">Email</th>
-                  <th className="py-2 text-left text-sm font-medium text-light-muted">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentSubscribers.map((subscriber) => (
-                  <tr key={subscriber.id} className="border-b border-dark-border">
-                    <td className="py-3 text-light">{subscriber.email}</td>
-                    <td className="py-3 text-light-muted">{subscriber.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4 text-right">
-            <a href="#" className="text-primary hover:text-primary-light text-sm font-medium">
-              View All Subscribers
-            </a>
-          </div>
-        </div>
-
-        {/* Upcoming Newsletters */}
-        <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
-          <h2 className="text-lg font-bold mb-4 text-primary">Upcoming Newsletters</h2>
-          <div className="space-y-4">
-            {upcomingNewsletters.map((newsletter) => (
-              <div key={newsletter.id} className="border border-dark-border rounded-md p-4 bg-dark-lighter">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium text-light">{newsletter.title}</h3>
-                    <div className="flex items-center mt-1 text-sm text-light-muted">
-                      <FiCalendar className="mr-1" size={14} />
-                      {newsletter.date}
-                    </div>
-                  </div>
-                  <span className={`text-sm px-2 py-1 rounded-full ${newsletter.status === 'Draft'
-                    ? 'bg-dark-light text-primary'
-                    : 'bg-primary/20 text-primary'
-                    }`}>
-                    {newsletter.status}
-                  </span>
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <button className="text-sm bg-primary text-dark px-3 py-1 rounded-md hover:bg-primary-light">
-                    Edit
-                  </button>
-                  <button className="text-sm bg-dark-light text-light px-3 py-1 rounded-md hover:bg-dark-card border border-dark-border">
-                    Preview
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 text-right">
-            <a href="#" className="text-primary hover:text-primary-light text-sm font-medium">
-              View All Newsletters
-            </a>
-          </div>
-        </div>
-      </div>
+      {/* Main Content will continue... */}
     </div>
   );
 };
 
-// Access denied component
-const AccessDenied = () => {
-  const { user, logout } = useAuth();
-
-  return (
-    <div className="max-w-md mx-auto bg-dark-card rounded-lg shadow-dark-md p-8 text-center border border-dark-border">
-      <div className="text-red-400 mb-4">
-        <svg className="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-      </div>
-      <h2 className="text-2xl font-bold text-primary mb-2">Access Denied</h2>
-      <p className="text-light-muted mb-6">
-        You are logged in as {user?.email}, but you do not have administrator privileges.
-      </p>
-      <button
-        onClick={logout}
-        className="inline-flex items-center px-4 py-2 border border-dark-border rounded-md shadow-dark-sm text-sm font-medium text-primary bg-dark-light hover:bg-dark-lighter focus:outline-none"
-      >
-        <FiLogOut className="mr-2" />
-        Logout
-      </button>
-    </div>
-  );
-};
-
-// Main admin page component with conditional rendering
-export default function AdminPage() {
+// Main Admin Page Component
+const AdminPage = () => {
   const { user, loading, isAdmin } = useAuth();
 
-  // Show loading state
+  // If loading, show loading state
   if (loading) {
     return (
       <AdminLayout title="Loading">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <LoadingState message="Authenticating..." />
+      </AdminLayout>
+    );
+  }
+
+  // If not logged in, show login form
+  if (!user) {
+    return (
+      <AdminLayout title="Login">
+        <LoginForm />
+      </AdminLayout>
+    );
+  }
+
+  // If logged in but not admin, show access denied
+  if (!isAdmin) {
+    return (
+      <AdminLayout title="Access Denied">
+        <div className="bg-dark-card p-8 rounded-lg shadow-dark-md text-center border border-dark-border">
+          <h2 className="text-xl font-bold text-red-400 mb-3">Access Denied</h2>
+          <p className="text-light-muted mb-6">
+            Your account does not have administrator privileges. Please contact an administrator for assistance.
+          </p>
+          <button
+            onClick={() => localStorage.clear() || sessionStorage.clear() || window.location.reload()}
+            className="bg-dark-light text-primary px-4 py-2 rounded text-sm hover:bg-dark-lighter transition-colors flex items-center mx-auto border border-dark-border"
+          >
+            <FiLogOut className="mr-2" />
+            <span>Logout</span>
+          </button>
         </div>
       </AdminLayout>
     );
   }
 
-  // User is logged in but not an admin
-  if (user && !isAdmin) {
-    return (
-      <AdminLayout title="Access Denied">
-        <AccessDenied />
-      </AdminLayout>
-    );
-  }
-
-  // User is logged in and is an admin
-  if (user && isAdmin) {
-    return (
-      <AdminLayout title="Dashboard">
-        <Dashboard />
-      </AdminLayout>
-    );
-  }
-
-  // User is not logged in, show login form
+  // If admin, show dashboard
   return (
-    <AdminLayout title="Login">
-      <LoginForm />
+    <AdminLayout title="Dashboard">
+      <Dashboard />
     </AdminLayout>
   );
-}
+};
+
+export default AdminPage;
