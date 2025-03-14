@@ -35,9 +35,11 @@ async function checkIfAdmin(user) {
     if (!user) return false;
 
     // List of admin emails - for production, store in Firestore or use custom claims
-    const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',');
+    const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
+        .split(',')
+        .map(email => email.trim().toLowerCase());
 
-    if (adminEmails.includes(user.email)) {
+    if (adminEmails.includes(user.email.toLowerCase())) {
         return true;
     }
 
