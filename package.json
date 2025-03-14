@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "next build && firebase deploy"
+    "deploy": "next build && firebase deploy",
+    "clean": "node scripts/cleanup-routes.js",
+    "clean:build": "rm -rf .next && npm run clean && npm run build",
+    "fixapp": "rm -rf src/app/app && rm -rf .next && npm run build"
   },
   "dependencies": {
     "axios": "^1.6.2",
