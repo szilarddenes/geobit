@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "rules": {
+    "structure": {
+      "forbidden_patterns": [
+        "src/app/app/*",
+        "src/app/*/app/*",
+        "app/app/*"
+      ],
+      "path_validation": {
+        "nextjs_app_router": true,
+        "enforce_flat_structure": true,
+        "max_nesting_level": 3
+      },
+      "enforce_conventions": {
+        "next_js_routes": "src/app",
+        "api_routes": "src/app/api",
+        "components": "src/components",
+        "utils": "src/utils"
+      }
+    },
+    "content_collection": {
+      "sources": {
+        "include": [
+          // Hydrocarbon & Energy News (Primary Focus)
+          "*.aapg.org*",
+          "*.oilandgasjournal.com*",
+          "*.ogj.com*",
+          "*.energyintel.com*",
+          "*.rigzone.com*",
+          "*.upstreamonline.com*",
+          "*.worldoil.com*",
+          "*.hartenergy.com*",
+          "*.spglobal.com/commodityinsights*",
+          "*.naturalgasintel.com*",
+          "*.petroleum-economist.com*",
+          "*.energynews.network*",
+          "*.energyvoice.com*",
+          "*.iogp.org*",
+          
+          // Mining News
+          "*.mining.com*",
+          "*.mining-journal.com*",
+          "*.miningweekly.com*",
+          "*.resourceworld.com*",
+          "*.e-mj.com*",
+          "*.im-mining.com*",
+          "*.mineweb.com*",
+          
+          // Geopolitics & Regional Resources
+          "*.stratfor.com*",
+          "*.geopoliticalfutures.com*",
+          "*.resourcegovernance.org*",
+          "*.foreignpolicy.com/category/economics*",
+          "*.woodmac.com*",
+          "*.resourcecontracts.org*",
+          
+          // Regional Coverage - Americas
+          "*.eia.gov*",
+          "*.nrcan.gc.ca*",
+          "*.anp.gov.br*",
+          "*.cnh.gob.mx*",
+          
+          // Regional Coverage - Europe & Russia
+          "*.eurogeologists.eu*",
+          "*.bgs.ac.uk*",
+          "*.norskpetroleum.no*",
+          "*.gazprom.com/press*",
+          "*.rosneft.com/press*",
+          "*.lukoil.com/press*",
+          
+          // Regional Coverage - Asia, Middle East & Australia
+          "*.petrochina.com.cn*",
+          "*.sinopec.com/news*",
+          "*.adnoc.ae*",
+          "*.spe.org.au*",
+          "*.ga.gov.au*",
+          "*.ogra.org.pk*",
+          
+          // Academic & Research
+          "*.nature.com/earth*",
+          "*.sciencemag.org/earth*",
+          "*.agu.org*",
+          "*.geosociety.org*",
+          "*.usgs.gov/news*",
+          "*.noaa.gov/research*",
+          "*.nasa.gov/earth*",
+          "*.spe.org*",
+          "*.seg.org*"
+        ],
+        "exclude": [
+          "*paywall*",
+          "*subscription-required*",
+          "*older-than:7d*"
+        ]
+      },
+      "content_type": [
+        "research_papers",
+        "press_releases",
+        "news_articles",
+        "conference_proceedings",
+        "industry_reports",
+        "market_analysis",
+        "regulatory_updates",
+        "project_announcements",
+        "technology_developments",
+        "geopolitical_analysis",
+        "resource_discoveries"
+      ],
+      "max_age_days": 7
+    },
+    "content_processing": {
+      "summarization": {
+        "max_length_words": 100,
+        "key_elements": [
+          "research_findings",
+          "methodology",
+          "practical_applications",
+          "key_conclusions"
+        ],
+        "preserve_technical_accuracy": true,
+        "attribution_required": true
+      },
+      "categorization": {
+        // Category tags that apply to all content
+        "categories": [
+          // Hydrocarbon Focus
+          "Oil & Gas Exploration",
+          "Reservoir Engineering",
+          "Production Technology",
+          "Petroleum Geology",
+          "Seismic Interpretation",
+          "Field Development",
+          "Unconventional Resources",
+          
+          // Energy Sector
+          "Energy Markets",
+          "Renewable Integration",
+          "LNG Developments",
+          "Energy Transition",
+          "Carbon Capture",
+          "Hydrogen Economy",
+          
+          // Mining & Minerals
+          "Mining Technology",
+          "Mineral Exploration",
+          "Critical Minerals",
+          "Rare Earth Elements",
+          "Mining Economics",
+          "Sustainable Mining",
+          
+          // Geopolitical Categories
+          "Resource Geopolitics",
+          "Energy Security",
+          "Regulatory Developments",
+          "Resource Nationalism",
+          "Supply Chain Analysis",
+          
+          // Traditional Geoscience
+          "Geology",
+          "Oceanography",
+          "Atmospheric Science",
+          "GIS/Remote Sensing",
+          "Paleontology",
+          "Resource Exploration",
+          "Geophysics",
+          "Geochemistry",
+          "Environmental Geology"
+        ],
+        "max_categories_per_item": 3,
+        "geographic_tagging": true,
+        "content_type_tags": [
+          "academic",
+          "industry",
+          "government",
+          "educational"
+        ]
+      }
+    },
+    "newsletter_assembly": {
+      "priority_order": {
+        "top": "high_impact_research",
+        "middle": "industry_developments",
+        "bottom": "events_conferences"
+      },
+      "content_limits": {
+        "max_items_per_digest": 10,
+        "min_items_per_category": 1,
+        "max_industry_items": 2,
+        "required_elements": [
+          "upcoming_events"
+        ]
+      },
+      "formatting": {
+        "item_structure": [
+          "headline",
+          "summary_paragraph",
+          "source_link"
+        ],
+        "image_inclusion": {
+          "enabled": true,
+          "max_images_per_digest": 1,
+          "preferred_types": [
+            "satellite_imagery",
+            "geological_visualizations",
+            "data_visualizations"
+          ]
+        },
+        "branding": {
+          "header_image": "geobit_header.png",
+          "color_scheme": "earth_tones",
+          "footer_template": "standard_footer_with_unsubscribe"
+        }
+      }
+    },
+    "user_experience": {
+      "subscription": {
+        "required_fields": [
+          "email"
+        ],
+        "optional_fields": [
+          "specialization",
+          "professional_role",
+          "geographic_region"
+        ],
+        "delivery": {
+          "frequency": "weekly",
+          "day": "wednesday",
+          "time": "09:00 UTC"
+        },
+        "preferences": {
+          "allow_category_filtering": true,
+          "format_options": [
+            "html",
+            "plain_text"
+          ],
+          "frequency_options": [
+            "weekly",
+            "daily"
+          ]
+        }
+      },
+      "analytics": {
+        "track_open_rate": true,
+        "track_click_rate": true,
+        "content_performance_metrics": true,
+        "category_preference_analysis": true
+      }
+    },
+    "monetization": {
+      "sponsored_content": {
+        "enabled": true,
+        "max_per_digest": 1,
+        "label_required": true,
+        "placement": "middle",
+        "style_differentiation": true
+      },
+      "premium_tier": {
+        "enabled": false,
+        "future_features": [
+          "daily_digests",
+          "full_text_access",
+          "specialized_content",
+          "archive_access"
+        ]
+      },
+      "job_listings": {
+        "enabled": true,
+        "max_per_digest": 3,
+        "section_placement": "after_main_content"
+      },
+      "affiliate_links": {
+        "enabled": true,
+        "disclosure_required": true,
+        "relevant_categories_only": true
+      }
+    }
+  }
+}
