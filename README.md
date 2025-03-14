@@ -105,17 +105,78 @@ npm install
 cd ..
 ```
 
-3. Configure Firebase
+3. Configure Environment
    - Create a Firebase project at [firebase.google.com](https://firebase.google.com)
-   - Enable Firestore, Functions, and Hosting
-   - Add your Firebase config to `.env.local`
+   - Set up two projects: one for development (`geobit-dev`) and one for production (`geobit-959c9`)
+   - Enable Firestore, Functions, Authentication, and Hosting in each project
+   - Copy `.env.example` to `.env.development` and `.env.production`
+   - Fill in your Firebase config values and API keys in each env file
 
-4. Start development server
+4. Switch Between Environments
+```bash
+# For development
+./switch-env.sh dev
+
+# For production
+./switch-env.sh prod
+```
+
+5. Start development server
 ```bash
 npm run dev
 ```
 
-5. Deploy to Firebase
+6. Deploy to Firebase
 ```bash
+# Deploy to development
+git checkout develop
+npm run deploy
+
+# Deploy to production
+git checkout master
 npm run deploy
 ```
+
+## Environment Management
+
+The project is set up with separate development and production environments:
+
+- **Development**: `geobit-dev` Firebase project, stored in `.env.development`
+- **Production**: `geobit-959c9` Firebase project, stored in `.env.production`
+
+GitHub Actions handle automated deployments:
+- Pushes to `master` branch deploy to production
+- Pushes to `develop` branch deploy to development
+- Pull requests create preview deployments
+
+## Admin Access
+
+The admin dashboard is protected with Firebase Authentication:
+
+1. Sign up as a normal user
+2. In Firebase Console, add a custom claim or role to your user:
+```javascript
+// In Firebase Auth console or Functions
+{
+  "role": "admin"
+}
+```
+3. Access the admin dashboard at `/admin`
+
+## API Routes
+
+The application uses Next.js API routes for server-side operations:
+
+### Public API Endpoints
+- `/api/newsletter/subscribe` - Subscribe to newsletter
+- `/api/newsletter/unsubscribe` - Unsubscribe from newsletter
+- `/api/newsletter/latest` - Get latest newsletter
+
+### Admin API Endpoints (Protected)
+- `/api/admin/newsletter` - Manage newsletters
+- `/api/admin/subscribers` - Manage subscribers
+- `/api/admin/articles` - Manage content articles
+
+## License
+
+[MIT](LICENSE)
