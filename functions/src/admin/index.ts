@@ -52,7 +52,7 @@ export const verifyAdminToken = async (token: string): Promise<boolean> => {
 };
 
 // Admin login function
-const adminLogin = functions.https.onCall(async (data, context) => {
+const adminLogin = functions.https.onCall(async (data: { password?: string }, context) => {
   try {
     const { password } = data;
     

@@ -13,9 +13,11 @@
     "fixapp": "rm -rf src/app/app && rm -rf .next && npm run build"
   },
   "dependencies": {
+    "@babel/runtime": "^7.26.10",
+    "@tanstack-query-firebase/react": "^1.0.5",
     "axios": "^1.6.2",
     "dotenv": "^16.4.5",
-    "firebase": "^10.14.1",
+    "firebase": "^11.3.0",
     "next": "14.0.3",
     "react": "^18",
     "react-dom": "^18",
@@ -27,6 +29,8 @@
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.0.3",
+    "firebase-admin": "^13.2.0",
+    "firebase-functions": "^6.3.2",
     "postcss": "^8",
     "tailwindcss": "^3.3.0"
   }
