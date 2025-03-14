@@ -1,45 +1,32 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false,
-  images: {
-    domains: [],
-    // Set default image loader behavior
-    loader: 'default',
-    // Disable fetchPriority warning by setting the format
-    formats: ['image/webp'],
+  // Ensure only App Router is used
+  appDir: true,
+  
+  // Disable Pages Router for conflicting routes
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
+  
+  // Don't use pages that conflict with app directory
+  experimental: {
+    // Warn about duplicate routes at build time
+    strictRouteNamespaces: true,
   },
-  // Suppress specific warnings related to fetchPriority
-  onDemandEntries: {
-    // Keep the 50 most recently used pages in memory
-    maxInactiveAge: 25 * 1000,
-    // Don't dispose of any pages
-    pagesBufferLength: 2,
-  },
-  eslint: {
-    // Ignore specific warnings during development
-    ignoreDuringBuilds: true,
-  },
-  // Silence webpack warnings
-  webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      // Suppress certain webpack warnings
-      config.infrastructureLogging = {
-        level: 'error',
-      };
-    }
-    return config;
-  },
+  
+  // Redirect any attempts to access /pages/admin to /app/admin
   async redirects() {
     return [
       {
-        source: '/admin',
-        destination: '/admin/dashboard',
+        source: '/pages/admin',
+        destination: '/admin',
         permanent: true,
       },
-    ];
+      {
+        source: '/pages/admin/:path*',
+        destination: '/admin/:path*',
+        permanent: true,
+      }
+    ]
   },
-  // For Firebase deployment
-  distDir: '.next',
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
