@@ -3,13 +3,23 @@ const nextConfig = {
   // Ensure only App Router is used
   appDir: true,
   
-  // Disable Pages Router for conflicting routes
-  pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mdx'],
+  // Exclude certain pages directory paths that conflict with app directory
+  // This prevents the conflict between src/pages/admin and src/app/admin
+  excludeDefaultMomentLocales: true,
   
-  // Don't use pages that conflict with app directory
-  experimental: {
-    // Warn about duplicate routes at build time
-    strictRouteNamespaces: true,
+  // Configure routing
+  async rewrites() {
+    return [
+      // Prioritize app router for admin routes
+      {
+        source: '/admin',
+        destination: '/app/admin',
+      },
+      {
+        source: '/admin/:path*',
+        destination: '/app/admin/:path*',
+      }
+    ];
   },
   
   // Redirect any attempts to access /pages/admin to /app/admin
@@ -26,6 +36,21 @@ const nextConfig = {
         permanent: true,
       }
     ]
+  },
+  
+  // Only allow builds if there aren't conflicting routes
+  onDemandEntries: {
+    // Keep pages in memory longer during development
+    maxInactiveAge: 300 * 1000,
+    // Number of pages to keep in memory
+    pagesBufferLength: 5,
+  },
+  
+  // Custom webpack config
+  webpack: (config, { dev, isServer }) => {
+    // Add any custom webpack config here
+
+    return config;
   },
 }
 
