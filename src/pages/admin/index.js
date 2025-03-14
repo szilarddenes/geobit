@@ -1,7 +1,12 @@
-// This file is deprecated.
-// Please use the App Router implementation at src/app/admin/page.js instead.
+// This file has been moved to src/app/admin/page.js
+// The entire src/pages directory is deprecated and will be removed
+// This is a placeholder to prevent immediate build errors 
+// but should be deleted once migration is complete
 
-// This file can be safely deleted.
-export default function DeprecatedAdminPage() {
+export default function DeprecatedAdmin() {
+  // Redirect to the new route
+  if (typeof window !== 'undefined') {
+    window.location.href = '/admin';
+  }
   return null;
 }
