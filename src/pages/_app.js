@@ -2,6 +2,7 @@ import '@/styles/globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import { useEffect } from 'react';
+import { AuthProvider } from '@/lib/firebase/auth';
 
 // Store original functions
 if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
@@ -42,9 +43,9 @@ export default function App({ Component, pageProps }) {
   }, []);
 
   return (
-    <>
+    <AuthProvider>
       <Component {...pageProps} />
       <ToastContainer position="bottom-right" />
-    </>
+    </AuthProvider>
   );
 }

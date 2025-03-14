@@ -1,0 +1,22 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none"
+    xmlns="http://www.w3.org/2000/svg">
+    <!-- Background -->
+    <rect width="180" height="180" rx="60" fill="#2A6D82" />
+
+    <!-- Earth/Globe element -->
+    <circle cx="90" cy="90" r="70" fill="#4A8FA6" />
+
+    <!-- Grid lines representing latitude/longitude -->
+    <path d="M40 90H140" stroke="#E6E6E6" stroke-width="2" stroke-dasharray="4 4" />
+    <path d="M90 40V140" stroke="#E6E6E6" stroke-width="2" stroke-dasharray="4 4" />
+    <ellipse cx="90" cy="90" rx="50" ry="50" stroke="#E6E6E6" stroke-width="2" stroke-dasharray="6 6" />
+
+    <!-- Binary/Digital overlay elements -->
+    <rect x="75" y="65" width="10" height="10" fill="#F0F0F0" />
+    <rect x="95" y="65" width="10" height="10" fill="#F0F0F0" />
+    <rect x="75" y="85" width="10" height="10" fill="#F0F0F0" />
+    <rect x="95" y="85" width="10" height="10" fill="#F0F0F0" />
+    <rect x="115" y="75" width="10" height="10" fill="#F0F0F0" />
+    <rect x="55" y="75" width="10" height="10" fill="#F0F0F0" />
+    <rect x="75" y="105" width="30" height="10" fill="#F0F0F0" />
+</svg> 
