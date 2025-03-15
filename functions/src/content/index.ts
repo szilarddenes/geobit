@@ -12,10 +12,10 @@ const getOpenRouterApiKey = () => {
 };
 
 // Collect content from AI search
-const searchContentFromAI = functions.https.onCall(async (data, context) => {
+const searchContentFromAI = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, query, categories = ['research', 'news'] } = data;
+    const { token, query, categories = ['research', 'news'] } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -166,24 +166,25 @@ const searchContentFromAI = functions.https.onCall(async (data, context) => {
     // Log the error
     await db.collection('systemLogs').add({
       level: 'error',
-      service: 'api',
+      service: 'ai',
       message: 'AI search failed',
       details: { 
-        error: error.message,
-        query: data.query 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        query: request.data?.query 
       },
       timestamp: admin.firestore.FieldValue.serverTimestamp()
     });
     
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 });
 
 // Collect content from sources
-const collectContentFromSources = functions.https.onCall(async (data, context) => {
+const collectContentFromSources = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, sourceIds } = data;
+    const { token, sourceIds } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -204,16 +205,14 @@ const collectContentFromSources = functions.https.onCall(async (data, context) =
     });
     
     // Get the sources
-    const sources = [];
-    for (const id of sourceIds) {
-      const sourceDoc = await db.collection('contentSources').doc(id).get();
-      if (sourceDoc.exists) {
-        sources.push({
-          id: sourceDoc.id,
-          ...sourceDoc.data()
-        });
-      }
-    }
+    const sourcesSnapshot = await db.collection('contentSources')
+      .where(admin.firestore.FieldPath.documentId(), 'in', sourceIds)
+      .get();
+    
+    const sources = sourcesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as { id: string; url: string; name: string; category: string; scrapeSelector?: string }[];
     
     if (sources.length === 0) {
       throw new Error('No valid sources found');
@@ -235,9 +234,10 @@ const collectContentFromSources = functions.https.onCall(async (data, context) =
       throw new Error('OpenRouter API key not configured');
     }
     
+    // Process sources in batches
     let contentCount = 0;
-    const errors = [];
-    const contentItems = [];
+    const errors: { sourceId: string; error: string }[] = [];
+    const contentItems: { id: string; title: string; source: string; url: string; category: string }[] = [];
     
     // Process each source
     for (const source of sources) {
@@ -291,36 +291,36 @@ const collectContentFromSources = functions.https.onCall(async (data, context) =
           }
         );
         
-        // Extract JSON from the AI response
-        const aiContent = aiResponse.data.choices[0].message.content;
-        let jsonContent;
+        // Parse the AI response
+        let extractedContent;
         try {
-          // Extract JSON if it's wrapped in backticks
-          const jsonMatch = aiContent.match(/```(?:json)?([\s\S]+?)```/);
-          if (jsonMatch) {
-            jsonContent = JSON.parse(jsonMatch[1].trim());
-          } else {
-            // Try parsing directly
-            jsonContent = JSON.parse(aiContent);
+          extractedContent = parseAIResponse(aiResponse.data.choices[0].message.content);
+          
+          if (!Array.isArray(extractedContent) || extractedContent.length === 0) {
+            throw new Error('AI did not return any content items');
           }
         } catch (error) {
-          throw new Error(`Could not parse AI response as valid JSON: ${error.message}`);
+          console.error(`Error processing AI response for source ${source.id}:`, error);
+          errors.push({
+            sourceId: source.id,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+          continue;
         }
         
         // Add source information to each item
-        jsonContent.forEach(item => {
+        extractedContent.forEach(item => {
           item.source = source.name;
           item.sourceId = source.id;
           contentItems.push(item);
         });
         
-        contentCount += jsonContent.length;
+        contentCount += extractedContent.length;
       } catch (error) {
         console.error(`Error collecting content from source ${source.name}:`, error);
         errors.push({
           sourceId: source.id,
-          sourceName: source.name,
-          error: error.message
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
         
         // Log the error
@@ -330,7 +330,7 @@ const collectContentFromSources = functions.https.onCall(async (data, context) =
           message: `Error collecting content from source: ${source.name}`,
           details: { 
             sourceId: source.id,
-            error: error.message 
+            error: error instanceof Error ? error.message : 'Unknown error'
           },
           timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -390,21 +390,24 @@ const collectContentFromSources = functions.https.onCall(async (data, context) =
     // Log the error
     await db.collection('systemLogs').add({
       level: 'error',
-      service: 'scraper',
+      service: 'content',
       message: 'Content collection failed',
-      details: { error: error.message },
+      details: { 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       timestamp: admin.firestore.FieldValue.serverTimestamp()
     });
     
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 });
 
-// Get content items (with filtering and pagination)
-const getContent = functions.https.onCall(async (data, context) => {
+// Get content
+const getContent = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, status, category, limit = 20, offset = 0 } = data;
+    const { token, status, category, limit = 20, offset = 0 } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -430,18 +433,19 @@ const getContent = functions.https.onCall(async (data, context) => {
     // Execute the query
     const contentSnapshot = await query.get();
     
-    const content = contentSnapshot.docs.map(doc => ({
+    // Extract the content items
+    const contentItems = contentSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
     
-    // Get total count (this is approximate)
+    // Get total count (for production, implement proper pagination with cursors)
     const countSnapshot = await db.collection('content').count().get();
     const total = countSnapshot.data().count;
     
     return { 
       success: true, 
-      content,
+      content: contentItems,
       pagination: {
         total,
         limit,
@@ -450,15 +454,16 @@ const getContent = functions.https.onCall(async (data, context) => {
     };
   } catch (error) {
     console.error('Error getting content:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 });
 
 // Update content status
-const updateContentStatus = functions.https.onCall(async (data, context) => {
+const updateContentStatus = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, contentId, status } = data;
+    const { token, contentId, status } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -491,15 +496,16 @@ const updateContentStatus = functions.https.onCall(async (data, context) => {
     return { success: true };
   } catch (error) {
     console.error('Error updating content status:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 });
 
-// Save edited content
-const saveContent = functions.https.onCall(async (data, context) => {
+// Save content
+const saveContent = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, contentId, updates } = data;
+    const { token, contentId, updates } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -514,8 +520,17 @@ const saveContent = functions.https.onCall(async (data, context) => {
       throw new Error('No updates provided');
     }
     
-    // Fields that can be updated
-    const allowedFields = ['title', 'summary', 'category', 'interestScore'];
+    // Check if the content exists
+    const contentDoc = await db.collection('content').doc(contentId).get();
+    if (!contentDoc.exists) {
+      throw new Error('Content not found');
+    }
+    
+    // Define fields that can be updated
+    const allowedFields = [
+      'title', 'summary', 'content', 'category', 'tags', 
+      'status', 'source', 'sourceUrl', 'imageUrl'
+    ];
     
     // Filter out fields that can't be updated
     const sanitizedUpdates = Object.entries(updates)
@@ -539,8 +554,8 @@ const saveContent = functions.https.onCall(async (data, context) => {
     // Log the content update
     await db.collection('systemLogs').add({
       level: 'info',
-      service: 'admin',
-      message: 'Content edited',
+      service: 'content',
+      message: `Content updated by admin: ${contentId}`,
       details: { 
         contentId,
         fields: Object.keys(sanitizedUpdates).filter(k => k !== 'updatedAt' && k !== 'editedByAdmin')
@@ -551,9 +566,22 @@ const saveContent = functions.https.onCall(async (data, context) => {
     return { success: true };
   } catch (error) {
     console.error('Error saving content:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 });
+
+// Helper function to parse AI response
+const parseAIResponse = (responseText: string) => {
+  try {
+    const aiResponse = JSON.parse(responseText);
+    return aiResponse;
+  } catch (error) {
+    console.error('Error parsing AI response:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Could not parse AI response as valid JSON: ${errorMessage}`);
+  }
+};
 
 // Export functions
 export default {

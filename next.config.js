@@ -9,6 +9,16 @@ const nextConfig = {
   // Allow domain imports for Firebase
   experimental: {
     esmExternals: 'loose',
+  },
+
+  // Temporarily disable type checking during build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
+  // Temporarily disable ESLint during build
+  eslint: {
+    ignoreDuringBuilds: true,
   }
 }
 

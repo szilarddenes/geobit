@@ -5,6 +5,12 @@ import axios from 'axios';
 // Initialize Firestore
 const db = admin.firestore();
 
+// Helper function to handle errors consistently
+const errorHandler = (error: unknown, context: string): string => {
+  console.error(`${context} error:`, error);
+  return error instanceof Error ? error.message : 'Unknown error occurred';
+};
+
 // Verify admin access using environment ADMIN_TOKEN
 const verifyAdminAccess = async (password: string): Promise<boolean> => {
   try {
@@ -51,10 +57,37 @@ export const verifyAdminToken = async (token: string): Promise<boolean> => {
   }
 };
 
+// Define types for API status
+type ApiStatus = {
+  status: string;
+  message: string;
+  quota?: {
+    used: number;
+    limit: number;
+    remaining: number;
+  };
+  usage?: {
+    reads: number;
+    writes: number;
+    deletes: number;
+  }
+};
+
+// Define type for system log
+type SystemLog = {
+  id: string;
+  timestamp: Date | null;
+  level?: string;
+  service?: string;
+  message?: string;
+  details?: any;
+  [key: string]: any;
+};
+
 // Admin login function
-const adminLogin = functions.https.onCall(async (data: { password?: string }, context) => {
+const adminLogin = functions.https.onCall(async (request, context) => {
   try {
-    const { password } = data;
+    const { password } = request.data || {};
     
     if (!password) {
       throw new Error('Password is required');
@@ -82,23 +115,26 @@ const adminLogin = functions.https.onCall(async (data: { password?: string }, co
     
     return { success: true, token };
   } catch (error) {
-    console.error('Admin login error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'Admin login') };
   }
 });
 
 // Get API status
-const getApiStatus = functions.https.onCall(async (data, context) => {
+const getApiStatus = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token } = data;
+    const { token } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
       throw new Error('Unauthorized access');
     }
     
-    const status = {
+    const status: {
+      openRouter: ApiStatus;
+      firebase: ApiStatus;
+      email: ApiStatus;
+    } = {
       openRouter: { status: 'unknown', message: 'Not checked' },
       firebase: { status: 'unknown', message: 'Not checked' },
       email: { status: 'unknown', message: 'Not checked' }
@@ -141,9 +177,10 @@ const getApiStatus = functions.https.onCall(async (data, context) => {
       }
     } catch (error) {
       console.error('OpenRouter API check error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       status.openRouter = { 
         status: 'error', 
-        message: `API error: ${error.message}` 
+        message: `API error: ${errorMessage}` 
       };
     }
     
@@ -168,9 +205,10 @@ const getApiStatus = functions.https.onCall(async (data, context) => {
       };
     } catch (error) {
       console.error('Firebase status check error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       status.firebase = { 
         status: 'error', 
-        message: `Firebase error: ${error.message}` 
+        message: `Firebase error: ${errorMessage}` 
       };
     }
     
@@ -200,24 +238,24 @@ const getApiStatus = functions.https.onCall(async (data, context) => {
       }
     } catch (error) {
       console.error('Email service check error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       status.email = { 
         status: 'error', 
-        message: `Email service error: ${error.message}` 
+        message: `Email service error: ${errorMessage}` 
       };
     }
     
     return { success: true, status };
   } catch (error) {
-    console.error('Error checking API status:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'API status check') };
   }
 });
 
 // Get content sources
-const getContentSources = functions.https.onCall(async (data, context) => {
+const getContentSources = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token } = data;
+    const { token } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -235,16 +273,15 @@ const getContentSources = functions.https.onCall(async (data, context) => {
     
     return { success: true, sources };
   } catch (error) {
-    console.error('Error getting content sources:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'Get content sources') };
   }
 });
 
 // Add content source
-const addContentSource = functions.https.onCall(async (data, context) => {
+const addContentSource = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, name, url, category, scrapeSelector } = data;
+    const { token, name, url, category, scrapeSelector } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -255,11 +292,15 @@ const addContentSource = functions.https.onCall(async (data, context) => {
       throw new Error('Name and URL are required');
     }
     
-    // Validate URL by attempting to fetch it
+    // Verify we can access the URL
     try {
-      await axios.get(url);
+      const response = await axios.get(url, { timeout: 10000 });
+      if (response.status !== 200) {
+        throw new Error(`URL returned status code ${response.status}`);
+      }
     } catch (error) {
-      throw new Error(`Could not access URL: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Could not access URL: ${errorMessage}`);
     }
     
     // Add to Firestore
@@ -274,16 +315,15 @@ const addContentSource = functions.https.onCall(async (data, context) => {
     
     return { success: true, id: sourceRef.id };
   } catch (error) {
-    console.error('Error adding content source:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'Add content source') };
   }
 });
 
 // Update content source
-const updateContentSource = functions.https.onCall(async (data, context) => {
+const updateContentSource = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, id, ...updateData } = data;
+    const { token, id, ...updateData } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -292,6 +332,12 @@ const updateContentSource = functions.https.onCall(async (data, context) => {
     
     if (!id) {
       throw new Error('Source ID is required');
+    }
+    
+    // Check if the source exists
+    const sourceDoc = await db.collection('contentSources').doc(id).get();
+    if (!sourceDoc.exists) {
+      throw new Error('Content source not found');
     }
     
     // Remove fields that shouldn't be updated
@@ -306,16 +352,15 @@ const updateContentSource = functions.https.onCall(async (data, context) => {
     
     return { success: true };
   } catch (error) {
-    console.error('Error updating content source:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'Update content source') };
   }
 });
 
 // Delete content source
-const deleteContentSource = functions.https.onCall(async (data, context) => {
+const deleteContentSource = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, id } = data;
+    const { token, id } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -331,16 +376,15 @@ const deleteContentSource = functions.https.onCall(async (data, context) => {
     
     return { success: true };
   } catch (error) {
-    console.error('Error deleting content source:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'Delete content source') };
   }
 });
 
 // Get subscribers
-const getSubscribers = functions.https.onCall(async (data, context) => {
+const getSubscribers = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, limit = 100, offset = 0 } = data;
+    const { token, limit = 50, offset = 0 } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
@@ -372,34 +416,45 @@ const getSubscribers = functions.https.onCall(async (data, context) => {
       }
     };
   } catch (error) {
-    console.error('Error getting subscribers:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'Get subscribers') };
   }
 });
 
 // Get system logs
-const getSystemLogs = functions.https.onCall(async (data, context) => {
+const getSystemLogs = functions.https.onCall(async (request, context) => {
   try {
     // Verify admin token
-    const { token, limit = 100, offset = 0, level, service, timeRange } = data;
+    const { token, limit = 100, offset = 0, level, service, timeRange } = request.data || {};
     const isValidToken = await verifyAdminToken(token);
     
     if (!isValidToken) {
       throw new Error('Unauthorized access');
     }
     
+    // Get all logs (for production, implement proper pagination with cursor-based pagination)
+    const logsSnapshot = await db.collection('systemLogs')
+      .orderBy('timestamp', 'desc')
+      .limit(offset + limit)
+      .get();
+    
+    let logs: SystemLog[] = logsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      timestamp: doc.data().timestamp?.toDate() || null
+    }));
+    
+    // Skip offset records
+    logs = logs.slice(offset, offset + limit);
+    
     // Calculate timeRange in milliseconds
-    let timeThreshold = null;
+    let timeThreshold: Date | null = null;
     if (timeRange) {
       const now = Date.now();
       switch (timeRange) {
         case '1h':
           timeThreshold = new Date(now - 60 * 60 * 1000);
           break;
-        case '6h':
-          timeThreshold = new Date(now - 6 * 60 * 60 * 1000);
-          break;
-        case '1d':
+        case '24h':
           timeThreshold = new Date(now - 24 * 60 * 60 * 1000);
           break;
         case '7d':
@@ -408,33 +463,16 @@ const getSystemLogs = functions.https.onCall(async (data, context) => {
         case '30d':
           timeThreshold = new Date(now - 30 * 24 * 60 * 60 * 1000);
           break;
-        default:
-          timeThreshold = new Date(now - 24 * 60 * 60 * 1000); // Default to 1 day
+      }
+      
+      if (timeThreshold) {
+        logs = logs.filter(log => {
+          return log.timestamp && timeThreshold && log.timestamp >= timeThreshold;
+        });
       }
     }
     
-    // Build the query
-    let query = db.collection('systemLogs')
-      .orderBy('timestamp', 'desc');
-    
-    // Apply filters if provided
-    if (timeThreshold) {
-      query = query.where('timestamp', '>=', admin.firestore.Timestamp.fromDate(timeThreshold));
-    }
-    
-    // Apply pagination
-    query = query.limit(limit).offset(offset);
-    
-    // Execute the query
-    const logsSnapshot = await query.get();
-    
-    // Extract the logs
-    let logs = logsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    
-    // Apply filters that can't be done in the query (for simplicity in this implementation)
+    // Apply further filtering
     if (level) {
       logs = logs.filter(log => log.level === level);
     }
@@ -444,8 +482,7 @@ const getSystemLogs = functions.https.onCall(async (data, context) => {
     }
     
     // Get approximate total count (for production, implement proper pagination with cursors)
-    const countSnapshot = await db.collection('systemLogs').count().get();
-    const total = countSnapshot.data().count;
+    const total = logs.length;
     
     return { 
       success: true, 
@@ -457,8 +494,7 @@ const getSystemLogs = functions.https.onCall(async (data, context) => {
       }
     };
   } catch (error) {
-    console.error('Error getting system logs:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: errorHandler(error, 'Get system logs') };
   }
 });
 

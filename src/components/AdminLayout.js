@@ -14,7 +14,7 @@ import {
     FiMenu,
     FiX
 } from 'react-icons/fi';
-import { logoutUser, onAuthStateChange } from '@/lib/firebase';
+import { logoutUser, onAuthStateChange } from '../lib/firebase-exports';
 
 export default function AdminLayout({ children, title }) {
     const [currentUser, setCurrentUser] = useState(null);

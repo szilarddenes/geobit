@@ -77,7 +77,7 @@ export default function Home() {
       <section className="bg-dark py-16 md:py-24">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold brand-header text-primary mb-6">
-            GEOSCIENCE<br />IN 5 MINUTES DAILY
+            GEOSCIENCE<br />IN BIT SIZED NEWS
           </h1>
           <p className="text-xl md:text-2xl text-light-muted max-w-3xl mx-auto mb-10">
             Get the <span className="text-primary font-bold">most important</span> earth science research and discoveries in a free daily email.

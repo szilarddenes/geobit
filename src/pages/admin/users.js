@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { FiUser, FiPlus, FiTrash2, FiMail } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import AdminLayout from '@/components/AdminLayout';
-import { getAdminUsers, addAdminUser, onAuthStateChange, checkIsAdmin } from '@/lib/firebase';
+import { getAdminUsers, addAdminUser, onAuthStateChange, checkIsAdmin } from '../../lib/firebase-exports';
 
 export default function AdminUsersPage() {
     const [admins, setAdmins] = useState([]);
