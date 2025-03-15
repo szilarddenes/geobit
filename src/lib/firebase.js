@@ -1,7 +1,8 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 // For production, these would be in environment variables
@@ -15,10 +16,24 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
+// Check if configuration is present
+if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+  console.warn('Firebase configuration missing! Check your .env.local or .env.development file');
+}
+
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 const db = getFirestore(app);
 const functions = getFunctions(app);
+const auth = getAuth(app);
+
+// Connect to emulators in development mode
+if (process.env.NODE_ENV === 'development' && process.env.USE_FIREBASE_EMULATORS === 'true') {
+  console.log('🔥 Using Firebase Emulators for local development');
+  connectFirestoreEmulator(db, 'localhost', 8080);
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+  connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+}
 
 // Initialize Analytics (only on client side)
 let analytics = null;
@@ -318,4 +333,4 @@ export const getNewsletters = rawGetNewsletters;
 // Subscription functions
 export const addSubscriber = httpsCallable(functions, 'subscribers-addSubscriber');
 
-export { app, db, analytics };
+export { app, db, analytics, auth };
