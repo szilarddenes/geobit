@@ -10,8 +10,15 @@
     "lint": "next lint",
     "deploy": "next build && firebase deploy",
     "emulators": "firebase emulators:start",
+    "easy": "./scripts/easy-dev.sh",
     "check:emulators": "node scripts/check-emulators.js",
-    "dev:full": "concurrently \"npm run emulators\" \"npm run dev:emu\""
+    "simple": "./scripts/simple-dev.sh",
+    "fix-emulators": "node scripts/fix-firebase-emulators.js",
+    "dev:full": "concurrently \"npm run emulators\" \"npm run dev:emu\"",
+    "create:admin": "node scripts/create-test-admin.js",
+    "dev:admin": "node scripts/start-dev-with-admin.js",
+    "direct:admin": "node scripts/create-direct-admin.js",
+    "dev:bash": "./scripts/dev-with-admin.sh"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.10",
