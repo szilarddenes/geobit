@@ -4,8 +4,30 @@ import Head from 'next/head';
 import { useAuth } from '@/lib/firebase/auth';
 import { cn } from '@/lib/utils';
 import { FcGoogle } from 'react-icons/fc';
-import { FiLock, FiLogOut, FiUsers } from 'react-icons/fi';
+import {
+  FiLock,
+  FiLogOut,
+  FiUsers,
+  FiRss,
+  FiSettings as FiSettingsIcon,
+  FiBarChart2,
+  FiEdit,
+  FiArchive,
+  FiRefreshCw,
+  FiSearch,
+  FiCpu
+} from 'react-icons/fi';
 import LoadingState from '@/components/LoadingState';
+import { toast } from 'react-toastify';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import {
+  generateNewsletterOnDemand,
+  verifyAdminTokenLocally,
+  getApiStatus
+} from '@/lib/firebase';
+import ApiStatusIndicator from '@/components/admin/ApiStatusIndicator';
+import { processArticleContent, searchGeoscienceNews } from '@/lib/api';
 
 // Admin layout
 const AdminLayout = ({ children, title }) => {
@@ -209,125 +231,448 @@ const LoginForm = () => {
   );
 };
 
-// Dashboard component
-const Dashboard = () => {
-  // Sample dashboard data
-  const stats = [
-    { label: 'Total Subscribers', value: '5,234', icon: <FiUser className="text-primary" /> },
-    { label: 'Newsletters Sent', value: '137', icon: <FiMail className="text-primary" /> },
-    { label: 'Articles Published', value: '428', icon: <FiFileText className="text-primary" /> },
-    { label: 'Avg. Open Rate', value: '42.8%', icon: <FiBarChart className="text-primary" /> }
-  ];
+// Enhanced Dashboard component
+const EnhancedDashboard = () => {
+  const router = useRouter();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isProcessingContent, setIsProcessingContent] = useState(false);
+  const [isSearchingNews, setIsSearchingNews] = useState(false);
+  const [apiStatus, setApiStatus] = useState({
+    openRouter: { status: 'unknown', message: 'Checking status...' },
+    firebase: { status: 'unknown', message: 'Checking status...' },
+    email: { status: 'unknown', message: 'Checking status...' }
+  });
+  const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
 
-  // Recent subscribers
-  const recentSubscribers = [
-    { id: 1, email: 'john.doe@example.com', date: 'Mar 12, 2025' },
-    { id: 2, email: 'jane.smith@organization.org', date: 'Mar 12, 2025' },
-    { id: 3, email: 'alex@research.edu', date: 'Mar 11, 2025' },
-    { id: 4, email: 'research@geology.com', date: 'Mar 11, 2025' },
-    { id: 5, email: 'scientist123@institute.org', date: 'Mar 10, 2025' }
-  ];
+  useEffect(() => {
+    // We already authenticated to reach this component, so we don't need to redirect
+    // Just check the API status
+    checkApiStatus();
+  }, []);
 
-  // Upcoming newsletters
-  const upcomingNewsletters = [
-    { id: 1, title: 'Daily Update - March 13, 2025', status: 'Draft', date: 'Mar 13, 2025' },
-    { id: 2, title: 'Weekly Roundup - March 14, 2025', status: 'Scheduled', date: 'Mar 14, 2025' }
-  ];
+  const checkApiStatus = async () => {
+    setIsRefreshingStatus(true);
+    try {
+      const adminToken = localStorage.getItem('geobit_admin_token');
+
+      // Try to use Firebase function to get API status
+      try {
+        const result = await getApiStatus({ token: adminToken });
+
+        if (result.data.success) {
+          setApiStatus(result.data.status);
+        } else {
+          throw new Error(result.data.error || 'Failed to fetch API status');
+        }
+      } catch (error) {
+        console.warn('Firebase function error, using development status:', error);
+
+        // Development fallback
+        if (verifyAdminTokenLocally(adminToken)) {
+          // Simulate API status in development
+          setApiStatus({
+            openRouter: {
+              status: 'ok',
+              message: 'Development mode - API simulated',
+              quota: { used: 25, limit: 100, remaining: 75 }
+            },
+            firebase: {
+              status: 'ok',
+              message: 'Development mode - Firebase simulated',
+              usage: { reads: 120, writes: 45, deletes: 10 }
+            },
+            email: {
+              status: 'ok',
+              message: 'Development mode - Email service simulated',
+              quota: { used: 250, limit: 2000, remaining: 1750 }
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error checking API status:', error);
+      toast.error('Failed to check API status');
+    } finally {
+      setIsRefreshingStatus(false);
+    }
+  };
+
+  const handleGenerateNewsletter = async () => {
+    if (isGenerating) return;
+
+    setIsGenerating(true);
+    toast.info('Generating newsletter...');
+
+    try {
+      const adminToken = localStorage.getItem('geobit_admin_token');
+
+      if (!adminToken) {
+        toast.error('You must be logged in as an admin');
+        return;
+      }
+
+      // Try to use Firebase function
+      try {
+        const result = await generateNewsletterOnDemand({
+          token: adminToken
+        });
+
+        if (result.data.success) {
+          toast.success('Newsletter generated successfully!');
+          router.push(`/admin/newsletters/edit/${result.data.newsletterId}`);
+        } else {
+          throw new Error(result.data.error || 'Failed to generate newsletter');
+        }
+      } catch (error) {
+        console.warn('Firebase function error, using development fallback:', error);
+
+        // Development fallback if using dev token
+        if (verifyAdminTokenLocally(adminToken)) {
+          // Show success message but stay on dashboard (no real newsletter in dev mode)
+          toast.success('Development mode: Newsletter generation simulated');
+          toast.info('Firebase Functions must be deployed for full functionality');
+        } else {
+          // Pass through error for non-dev tokens
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.error('Error generating newsletter:', error);
+      toast.error(error.message || 'Failed to generate newsletter');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Process article content with AI
+  const handleProcessContent = () => {
+    router.push('/admin/content/process');
+  };
+
+  // Search for geoscience news
+  const handleSearchNews = async () => {
+    if (isSearchingNews) return;
+
+    // In a real implementation, you'd show a form with advanced search options
+    // For simplicity in this example, we'll use a prompt
+    const keywords = prompt('Enter keywords to search for geoscience news:');
+    if (!keywords) return;
+
+    setIsSearchingNews(true);
+    toast.info('Searching for geoscience news...');
+
+    try {
+      const result = await searchGeoscienceNews({
+        keywords,
+        dateRange: {}, // Empty object for no date restrictions
+        sources: [],   // Empty array for no source restrictions
+        page: 1,
+        limit: 10
+      });
+
+      if (result.success) {
+        toast.success(`Found ${result.pagination.total} results!`);
+
+        // Navigate to a search results page
+        router.push({
+          pathname: '/admin/content/search',
+          query: {
+            searchId: result.searchId,
+            query: result.query
+          }
+        });
+      } else {
+        throw new Error(result.error || 'Failed to search for news');
+      }
+    } catch (error) {
+      console.error('Error searching for news:', error);
+      toast.error(error.message || 'Failed to search for geoscience news');
+    } finally {
+      setIsSearchingNews(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-dark-card p-6 rounded-lg shadow-dark-md flex items-start gap-4 border border-dark-border">
-            <div className="p-3 bg-dark-light rounded-full">
-              {stat.icon}
-            </div>
-            <div>
-              <p className="text-light-muted text-sm">{stat.label}</p>
-              <p className="text-2xl font-bold text-primary">{stat.value}</p>
-            </div>
-          </div>
-        ))}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-primary">
+          Dashboard
+        </h1>
+        <button
+          onClick={checkApiStatus}
+          disabled={isRefreshingStatus}
+          className="flex items-center gap-2 text-sm bg-dark-light text-primary font-medium py-1 px-3 rounded-md transition border border-dark-border"
+        >
+          <FiRefreshCw className={`${isRefreshingStatus ? 'animate-spin' : ''}`} />
+          {isRefreshingStatus ? 'Refreshing...' : 'Refresh Status'}
+        </button>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
-        <h2 className="text-lg font-bold mb-4 text-primary">Quick Actions</h2>
-        <div className="flex flex-wrap gap-4">
-          <button className="flex items-center bg-primary text-dark px-4 py-2 rounded-md hover:bg-primary-light">
-            <FiPlusCircle className="mr-2" />
-            New Newsletter
-          </button>
-          <button className="flex items-center bg-dark-light text-light px-4 py-2 rounded-md hover:bg-dark-lighter border border-dark-border">
-            <FiFileText className="mr-2" />
-            Add Article
-          </button>
-          <button className="flex items-center bg-dark-light text-light px-4 py-2 rounded-md hover:bg-dark-lighter border border-dark-border">
-            <FiMail className="mr-2" />
-            Manage Subscribers
-          </button>
-          <button className="flex items-center bg-dark-light text-light px-4 py-2 rounded-md hover:bg-dark-lighter border border-dark-border">
-            <FiSettings className="mr-2" />
-            Settings
-          </button>
+      {/* API Status */}
+      <div className="bg-dark-card p-6 rounded-lg shadow-dark-md mb-8 border border-dark-border">
+        <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
+          <FiSettingsIcon className="mr-2" /> System Status
+        </h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          <ApiStatusIndicator
+            title="AI API"
+            status={apiStatus.openRouter.status}
+            message={apiStatus.openRouter.message}
+            details={apiStatus.openRouter.quota}
+          />
+          <ApiStatusIndicator
+            title="Firebase"
+            status={apiStatus.firebase.status}
+            message={apiStatus.firebase.message}
+            details={apiStatus.firebase.usage}
+          />
+          <ApiStatusIndicator
+            title="Email Service"
+            status={apiStatus.email.status}
+            message={apiStatus.email.message}
+            details={apiStatus.email.quota}
+          />
         </div>
       </div>
 
-      {/* Main Content will continue... */}
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
+          <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
+            <FiEdit className="mr-2" /> Content Management
+          </h2>
+          <div className="space-y-4">
+            <div className="border-b border-dark-border pb-4">
+              <h3 className="font-medium text-light mb-2">Newsletter Generation</h3>
+              <p className="text-light-muted mb-4 text-sm">
+                Generate a new newsletter with AI-powered summaries of the latest geoscience content.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleGenerateNewsletter}
+                  disabled={isGenerating}
+                  className="bg-blue-600 hover:bg-blue-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50"
+                >
+                  {isGenerating ? 'Generating...' : 'Generate New Newsletter'}
+                </button>
+              </div>
+            </div>
+
+            {/* New AI Functions Section */}
+            <div className="border-b border-dark-border pb-4">
+              <h3 className="font-medium text-light mb-2">AI Content Processing</h3>
+              <p className="text-light-muted mb-4 text-sm">
+                Process article content with AI to generate summaries, categorize content, and rate interest level.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleProcessContent}
+                  disabled={isProcessingContent}
+                  className="bg-purple-600 hover:bg-purple-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50 flex items-center"
+                >
+                  <FiCpu className="mr-2" />
+                  {isProcessingContent ? 'Processing...' : 'Process Article Content'}
+                </button>
+              </div>
+            </div>
+
+            <div className="border-b border-dark-border pb-4">
+              <h3 className="font-medium text-light mb-2">Geoscience News Search</h3>
+              <p className="text-light-muted mb-4 text-sm">
+                Search for the latest geoscience news and research papers using AI-powered search.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleSearchNews}
+                  disabled={isSearchingNews}
+                  className="bg-green-600 hover:bg-green-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50 flex items-center"
+                >
+                  <FiSearch className="mr-2" />
+                  {isSearchingNews ? 'Searching...' : 'Search Geoscience News'}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-light mb-2">Content Collection</h3>
+              <p className="text-light-muted mb-4 text-sm">
+                Search for new content or manage your content sources.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/admin/content/collect"
+                  className="bg-amber-600 hover:bg-amber-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 inline-block"
+                >
+                  Collect New Content
+                </Link>
+                <Link
+                  href="/admin/sources"
+                  className="bg-green-600 hover:bg-green-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 inline-block"
+                >
+                  Manage Sources
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
+          <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
+            <FiBarChart2 className="mr-2" /> Analytics & Monitoring
+          </h2>
+
+          <div className="space-y-4">
+            <div className="border-b border-dark-border pb-4">
+              <h3 className="font-medium text-light mb-2">Key Metrics</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-dark-light p-3 rounded-md">
+                  <p className="text-light-muted text-xs mb-1">Subscribers</p>
+                  <p className="text-2xl font-bold text-primary">247</p>
+                </div>
+                <div className="bg-dark-light p-3 rounded-md">
+                  <p className="text-light-muted text-xs mb-1">Open Rate</p>
+                  <p className="text-2xl font-bold text-primary">38.2%</p>
+                </div>
+                <div className="bg-dark-light p-3 rounded-md">
+                  <p className="text-light-muted text-xs mb-1">Newsletters</p>
+                  <p className="text-2xl font-bold text-primary">12</p>
+                </div>
+                <div className="bg-dark-light p-3 rounded-md">
+                  <p className="text-light-muted text-xs mb-1">Articles</p>
+                  <p className="text-2xl font-bold text-primary">148</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-light mb-2">Tools & Reports</h3>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/admin/analytics"
+                  className="bg-amber-600 hover:bg-amber-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 inline-block"
+                >
+                  View Analytics
+                </Link>
+                <Link
+                  href="/admin/logs"
+                  className="bg-slate-600 hover:bg-slate-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 inline-block"
+                >
+                  System Logs
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
+          <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
+            <FiUsers className="mr-2" /> Audience
+          </h2>
+          <div className="space-y-4">
+            <div className="border-b border-dark-border pb-4">
+              <h3 className="font-medium text-light mb-2">Subscriber Management</h3>
+              <p className="text-light-muted mb-4 text-sm">
+                View and manage your newsletter subscribers.
+              </p>
+              <Link
+                href="/admin/subscribers"
+                className="bg-blue-600 hover:bg-blue-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 inline-block"
+              >
+                Manage Subscribers
+              </Link>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-light mb-2">Recent Signups</h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm p-2 bg-dark-light rounded">
+                  <span className="text-light">john.doe@example.com</span>
+                  <span className="text-light-muted text-xs">2 hours ago</span>
+                </div>
+                <div className="flex items-center justify-between text-sm p-2 bg-dark-light rounded">
+                  <span className="text-light">jane.smith@university.edu</span>
+                  <span className="text-light-muted text-xs">5 hours ago</span>
+                </div>
+                <div className="flex items-center justify-between text-sm p-2 bg-dark-light rounded">
+                  <span className="text-light">researcher@geo.org</span>
+                  <span className="text-light-muted text-xs">yesterday</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
+          <h2 className="text-xl font-bold text-primary mb-4 flex items-center">
+            <FiArchive className="mr-2" /> Archives & Publishing
+          </h2>
+          <div className="space-y-4">
+            <div className="border-b border-dark-border pb-4">
+              <h3 className="font-medium text-light mb-2">Newsletter Archives</h3>
+              <p className="text-light-muted mb-4 text-sm">
+                View and edit past newsletters.
+              </p>
+              <Link
+                href="/admin/newsletters"
+                className="bg-green-600 hover:bg-green-700 text-dark font-medium py-2 px-4 rounded-md transition duration-200 inline-block"
+              >
+                View Archives
+              </Link>
+            </div>
+
+            <div>
+              <h3 className="font-medium text-light mb-2">Latest Newsletters</h3>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm p-2 bg-dark-light rounded">
+                  <span className="text-light">Weekly Roundup - March 13, 2025</span>
+                  <span className="bg-green-100 text-green-800 text-xs py-1 px-2 rounded-full">Published</span>
+                </div>
+                <div className="flex items-center justify-between text-sm p-2 bg-dark-light rounded">
+                  <span className="text-light">Research Highlights - March 10, 2025</span>
+                  <span className="bg-green-100 text-green-800 text-xs py-1 px-2 rounded-full">Published</span>
+                </div>
+                <div className="flex items-center justify-between text-sm p-2 bg-dark-light rounded">
+                  <span className="text-light">Weekly Roundup - March 6, 2025</span>
+                  <span className="bg-green-100 text-green-800 text-xs py-1 px-2 rounded-full">Published</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-// Main Admin Page Component
-const AdminPage = () => {
-  const { user, loading, isAdmin } = useAuth();
+// Main Page Component
+export default function AdminPage() {
+  const { user, loading } = useAuth();
 
-  // If loading, show loading state
   if (loading) {
     return (
-      <AdminLayout title="Loading">
-        <LoadingState message="Authenticating..." />
+      <AdminLayout>
+        <LoadingState message="Checking authentication..." />
       </AdminLayout>
     );
   }
 
-  // If not logged in, show login form
-  if (!user) {
+  // Check for admin token in localStorage as a fallback
+  const hasAdminToken = typeof window !== 'undefined' && localStorage.getItem('geobit_admin_token');
+
+  if (!user && !hasAdminToken) {
+    // User is not logged in, show login form
     return (
-      <AdminLayout title="Login">
+      <AdminLayout title="Admin Login">
         <LoginForm />
       </AdminLayout>
     );
   }
 
-  // If logged in but not admin, show access denied
-  if (!isAdmin) {
-    return (
-      <AdminLayout title="Access Denied">
-        <div className="bg-dark-card p-8 rounded-lg shadow-dark-md text-center border border-dark-border">
-          <h2 className="text-xl font-bold text-red-400 mb-3">Access Denied</h2>
-          <p className="text-light-muted mb-6">
-            Your account does not have administrator privileges. Please contact an administrator for assistance.
-          </p>
-          <button
-            onClick={() => localStorage.clear() || sessionStorage.clear() || window.location.reload()}
-            className="bg-dark-light text-primary px-4 py-2 rounded text-sm hover:bg-dark-lighter transition-colors flex items-center mx-auto border border-dark-border"
-          >
-            <FiLogOut className="mr-2" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  // If admin, show dashboard
+  // User is logged in, show dashboard
   return (
-    <AdminLayout title="Dashboard">
-      <Dashboard />
+    <AdminLayout title="Admin Dashboard">
+      <EnhancedDashboard />
     </AdminLayout>
   );
-};
-
-export default AdminPage;
+}
