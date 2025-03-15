@@ -11,6 +11,7 @@ console.log('NEXT_PUBLIC_FIREBASE_API_KEY present:', Boolean(process.env.NEXT_PU
 console.log('NEXT_PUBLIC_FIREBASE_PROJECT_ID present:', Boolean(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID));
 console.log('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN present:', Boolean(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN));
 console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('Running in GitHub Actions:', Boolean(process.env.GITHUB_ACTIONS));
 
 // Firebase config from environment variables
 const firebaseConfig = {
@@ -36,6 +37,9 @@ const PROD_FALLBACKS = {
     appId: '1:000000000000:web:0000000000000000000000' // Use a placeholder
 };
 
+// Check if we're running in GitHub Actions
+const isGitHubActions = Boolean(process.env.GITHUB_ACTIONS);
+
 // Validate config and provide defaults
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.authDomain) {
     console.warn('Missing required Firebase configuration.');
@@ -52,16 +56,22 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.authD
             firebaseConfig.appId = firebaseConfig.appId || '1:000000000000:web:0000000000000000000000';
         }
     }
-    // For production, we don't provide fallbacks for sensitive keys
-    // Instead, we throw an error if required config is missing
+    // For production, we typically don't provide fallbacks for sensitive keys
     else if (process.env.NODE_ENV === 'production') {
         // For non-sensitive values we can use fallbacks
         firebaseConfig.authDomain = firebaseConfig.authDomain || PROD_FALLBACKS.authDomain;
         firebaseConfig.projectId = firebaseConfig.projectId || PROD_FALLBACKS.projectId;
         firebaseConfig.storageBucket = firebaseConfig.storageBucket || PROD_FALLBACKS.storageBucket;
 
-        // For sensitive values, we require them to be set
-        if (!firebaseConfig.apiKey) {
+        // For GitHub Actions builds, we allow placeholder values
+        if (isGitHubActions) {
+            console.log('Using placeholder values for GitHub Actions build');
+            firebaseConfig.apiKey = firebaseConfig.apiKey || 'github-actions-build-placeholder';
+            firebaseConfig.appId = firebaseConfig.appId || PROD_FALLBACKS.appId;
+            firebaseConfig.messagingSenderId = firebaseConfig.messagingSenderId || PROD_FALLBACKS.messagingSenderId;
+        }
+        // For actual production deployment, we require them to be set
+        else if (!firebaseConfig.apiKey) {
             throw new Error('Firebase API Key is required for production builds. Set NEXT_PUBLIC_FIREBASE_API_KEY environment variable.');
         }
     }
@@ -71,7 +81,8 @@ console.log('Firebase config being used:', {
     hasApiKey: Boolean(firebaseConfig.apiKey),
     projectId: firebaseConfig.projectId,
     authDomain: firebaseConfig.authDomain,
-    usingEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true'
+    usingEmulators: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true',
+    isGitHubActions
 });
 
 // Initialize or reuse Firebase app
@@ -89,25 +100,37 @@ try {
     console.error("Firebase config (safe):", {
         apiKeyExists: Boolean(firebaseConfig.apiKey),
         authDomainExists: Boolean(firebaseConfig.authDomain),
-        projectIdExists: Boolean(firebaseConfig.projectId)
+        projectIdExists: Boolean(firebaseConfig.projectId),
+        isGitHubActions
     });
-    throw new Error(`Failed to initialize Firebase: ${error.message}. Check your environment variables.`);
+
+    // In GitHub Actions, we just log the error but continue
+    if (isGitHubActions) {
+        console.error("Continuing GitHub Actions build despite Firebase initialization error");
+        firebaseApp = null;
+    } else {
+        throw new Error(`Failed to initialize Firebase: ${error.message}. Check your environment variables.`);
+    }
 }
 
 // Initialize services
 let auth, db, functions, rtdb;
 try {
-    auth = getAuth(firebaseApp);
-    db = getFirestore(firebaseApp);
-    functions = getFunctions(firebaseApp, 'us-central1');
-    rtdb = getDatabase(firebaseApp);
-    console.log('Firebase services initialized successfully');
+    if (firebaseApp) {
+        auth = getAuth(firebaseApp);
+        db = getFirestore(firebaseApp);
+        functions = getFunctions(firebaseApp, 'us-central1');
+        rtdb = getDatabase(firebaseApp);
+        console.log('Firebase services initialized successfully');
+    } else {
+        console.log('Skipping Firebase services initialization due to missing app');
+    }
 } catch (error) {
     console.error("Error initializing Firebase services:", error);
 }
 
 // Connect to emulators in development
-if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true' && process.env.NODE_ENV === 'development') {
+if (process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATORS === 'true' && process.env.NODE_ENV === 'development' && auth && db && functions && rtdb) {
     // Auth emulator
     if (process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_URL) {
         try {

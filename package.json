@@ -10,7 +10,7 @@
     "lint": "next lint",
     "deploy": "next build && firebase deploy",
     "emulators": "firebase emulators:start",
-    "easy": "./scripts/easy-dev.sh",
+    "geobit": "./scripts/geobit.sh",
     "check:emulators": "node scripts/check-emulators.js",
     "simple": "./scripts/simple-dev.sh",
     "fix-emulators": "node scripts/fix-firebase-emulators.js",

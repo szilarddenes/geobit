@@ -13,12 +13,22 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 // Import Firebase instances from our singleton implementation
 import { app, firebaseAuth as auth, firebaseDb as db } from './firebase-app';
 
-// Initialize Google provider
-const googleProvider = new GoogleAuthProvider();
+// Check if we're running in GitHub Actions or a build context
+const isBuildContext = process.env.GITHUB_ACTIONS === 'true' || (
+    typeof window === 'undefined' && process.env.NODE_ENV === 'production'
+);
+
+// Initialize Google provider if we have auth
+const googleProvider = auth ? new GoogleAuthProvider() : null;
 
 // Check if a user has admin privileges
 async function checkIfAdmin(user) {
     if (!user) return false;
+
+    // Skip actual checks in build context
+    if (isBuildContext) {
+        return false;
+    }
 
     // List of admin emails - for production, store in Firestore or use custom claims
     const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',')
@@ -58,6 +68,13 @@ export function AuthProvider({ children }) {
     const [authError, setAuthError] = useState(null);
 
     useEffect(() => {
+        // In build context, quickly complete the auth process
+        if (isBuildContext) {
+            console.log('Running in build context - skipping auth initialization');
+            setLoading(false);
+            return () => { };
+        }
+
         if (!auth) {
             console.error('Firebase auth not initialized');
             setLoading(false);
@@ -119,6 +136,11 @@ export function AuthProvider({ children }) {
 
     // Login with email and password
     const loginWithEmail = async (email, password) => {
+        if (isBuildContext) {
+            console.log('Running in build context - login attempt skipped');
+            return null;
+        }
+
         if (!auth) {
             throw new Error('Firebase auth not initialized');
         }
@@ -135,8 +157,13 @@ export function AuthProvider({ children }) {
 
     // Login with Google
     const loginWithGoogle = async (useRedirect = false) => {
-        if (!auth) {
-            throw new Error('Firebase auth not initialized');
+        if (isBuildContext) {
+            console.log('Running in build context - Google login attempt skipped');
+            return null;
+        }
+
+        if (!auth || !googleProvider) {
+            throw new Error('Firebase auth or Google provider not initialized');
         }
 
         try {
@@ -157,6 +184,11 @@ export function AuthProvider({ children }) {
 
     // Logout
     const logout = async () => {
+        if (isBuildContext) {
+            console.log('Running in build context - logout attempt skipped');
+            return;
+        }
+
         if (!auth) {
             throw new Error('Firebase auth not initialized');
         }

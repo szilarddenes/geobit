@@ -1,4 +1,4 @@
-(node:2594) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:9142) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 i  emulators: Starting emulators: auth, functions, firestore, database, hosting, extensions
 
@@ -18,7 +18,7 @@ npm warn EBADENGINE   required: { node: '20' },
 npm warn EBADENGINE   current: { node: 'v22.13.1', npm: '11.2.0' }
 npm warn EBADENGINE }
 
-up to date in 10s
+up to date in 1s
 
 34 packages are looking for funding
   run `npm fund` for details
@@ -32,7 +32,7 @@ i  hosting[geobit-959c9]: Serving hosting files from: .firebase/geobit-959c9/hos
 i  functions: Watching "/Users/solid.garden/@dev/geobit/functions" for Cloud Functions...
 ⚠  functions: Your requested "node" version "18" doesn't match your global version "22". Using node@22 from host.
 i  functions: Loaded environment variables from .env.
-Serving at port 8715
+Serving at port 8196
 
 ⚠  functions: Your GOOGLE_APPLICATION_CREDENTIALS environment variable points to /Users/solid.garden/.config/firebase/solid_garden.dev_gmail.com_application_default_credentials.json. Non-emulated services will access production using these credentials. Be careful!
 ✔  functions: Loaded functions definitions from source: .
