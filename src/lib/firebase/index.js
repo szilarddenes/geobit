@@ -3,10 +3,17 @@ import { useAuth } from './auth';
 import { onAuthStateChanged } from 'firebase/auth';
 
 // Import Firebase instances from our singleton implementation
-import { app, firebaseAuth as auth, firebaseDb as db } from './firebase-app';
+import {
+    app,
+    firebaseAuth as auth,
+    firebaseDb as db,
+    firebaseFunctions as functions,
+    firebaseDatabase as database,
+    isUsingEmulators
+} from './firebase-app';
 
 // Export firebase instances
-export { app, auth, db };
+export { app, auth, db, functions, database, isUsingEmulators };
 
 // Create the onAuthStateChange function - exact name as imported
 export const onAuthStateChange = (callback) => {

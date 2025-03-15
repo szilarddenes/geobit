@@ -4,16 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:emu": "cross-env NEXT_PUBLIC_USE_FIREBASE_EMULATORS=true next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "deploy": "next build && firebase deploy",
-    "clean": "node scripts/cleanup-routes.js",
-    "clean:build": "rm -rf .next && npm run clean && npm run build",
-    "fixapp": "rm -rf src/app/app && rm -rf .next && npm run build",
     "emulators": "firebase emulators:start",
-    "dev:emulate": "concurrently \"npm run dev\" \"npm run emulators\"",
-    "seed:emulators": "node scripts/seed-emulators.js"
+    "check:emulators": "node scripts/check-emulators.js",
+    "dev:full": "concurrently \"npm run emulators\" \"npm run dev:emu\""
   },
   "dependencies": {
     "@babel/runtime": "^7.26.10",
@@ -30,6 +28,7 @@
     "@types/react": "19.0.10",
     "autoprefixer": "^10.0.1",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.0.3",
     "postcss": "^8",

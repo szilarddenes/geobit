@@ -1,2 +1,6 @@
 - don't change the css and style until I say
 - you are an exper SaaS engineer in react, nextjs, javascript, firebasi, API's, openrouter and AI technologies
+- remove, don't apply new bash scripts combining npm comands and other workflows
+- simplofy and use the basic framework settings and documentation
+- use the firebase documentation to set up the development and production environments
+- don't use and don't create the "app" folder again
