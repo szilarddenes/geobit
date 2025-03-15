@@ -25,19 +25,20 @@ const firebaseConfig = {
         `https://${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'geobit-959c9'}-default-rtdb.firebaseio.com`
 };
 
-// Production fallbacks for build process - ONLY used during build time, not client-side
+
 const PROD_FALLBACKS = {
-    apiKey: 'AIzaSyDu3JQG0UcuBEJ5X6Jz9PnR6GZfCcA-iVk', // This is a placeholder - update with your actual key
-    authDomain: 'geobit-959c9.firebaseapp.com',
+    // Never hardcode actual API keys - only use descriptive placeholders
+    apiKey: 'PROVIDE_VIA_ENV_VARIABLE',
+    authDomain: 'geobit-959c9.firebaseapp.com', // Public domain values can be included
     projectId: 'geobit-959c9',
     storageBucket: 'geobit-959c9.appspot.com',
-    messagingSenderId: '1042204717488',
-    appId: '1:1042204717488:web:5c09c28f1fd9a3c932b6d9'
+    messagingSenderId: '000000000000', // Use a placeholder
+    appId: '1:000000000000:web:0000000000000000000000' // Use a placeholder
 };
 
 // Validate config and provide defaults
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.authDomain) {
-    console.warn('Missing required Firebase configuration. Using appropriate fallbacks.');
+    console.warn('Missing required Firebase configuration.');
 
     // Development fallbacks
     if (process.env.NODE_ENV === 'development') {
@@ -51,14 +52,18 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.authD
             firebaseConfig.appId = firebaseConfig.appId || '1:000000000000:web:0000000000000000000000';
         }
     }
-    // Production build fallbacks (only used during build, not in client-side)
+    // For production, we don't provide fallbacks for sensitive keys
+    // Instead, we throw an error if required config is missing
     else if (process.env.NODE_ENV === 'production') {
-        firebaseConfig.apiKey = firebaseConfig.apiKey || PROD_FALLBACKS.apiKey;
+        // For non-sensitive values we can use fallbacks
         firebaseConfig.authDomain = firebaseConfig.authDomain || PROD_FALLBACKS.authDomain;
         firebaseConfig.projectId = firebaseConfig.projectId || PROD_FALLBACKS.projectId;
         firebaseConfig.storageBucket = firebaseConfig.storageBucket || PROD_FALLBACKS.storageBucket;
-        firebaseConfig.messagingSenderId = firebaseConfig.messagingSenderId || PROD_FALLBACKS.messagingSenderId;
-        firebaseConfig.appId = firebaseConfig.appId || PROD_FALLBACKS.appId;
+
+        // For sensitive values, we require them to be set
+        if (!firebaseConfig.apiKey) {
+            throw new Error('Firebase API Key is required for production builds. Set NEXT_PUBLIC_FIREBASE_API_KEY environment variable.');
+        }
     }
 }
 

@@ -26,6 +26,9 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+.env.development
+.env.production
+.env.test
 
 # vercel
 .vercel
@@ -35,17 +38,46 @@ yarn-error.log*
 next-env.d.ts
 
 # firebase
-.firebase
+.firebase/
 firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+database-debug.log
+firestore-debug.log
 
 # history files
+.history/
 .history
 
 #keys
 /_keys
+**/keys/
+**/*.key
 
+# function dependencies
 /functions/node_modules
+/functions/lib
 
 # Prevent nested app folders
 /src/app/app
 /src/app/*/app
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Environment configuration files (other than .env)
+.env.*.local
+*.env.json
+
+# VSCode settings
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# Git secrets
+replacements.txt
+*.swp

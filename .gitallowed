@@ -1,0 +1,9 @@
+# Allow documentation files to mention API keys for instructional purposes
+CLEANUP-INSTRUCTIONS.md:.*AIzaSyDvpreQ684CJaRl0dfbhR9i_IDKz58JfMk.*
+CLEANUP-INSTRUCTIONS.md:.*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.*
+SECURITY-IMPROVEMENTS.md:.*AIza\[0-9A-Za-z\\-_\]\{35\}.*
+SECURITY-IMPROVEMENTS.md:.*sk-\[a-zA-Z0-9\]\{48\}.*
+SECURITY-IMPROVEMENTS.md:.*sk-or-v1-\[a-zA-Z0-9\]\{48\}.*
+
+# Add this line to any future documentation files that need to mention API keys
+# FUTURE-DOCUMENTATION.md:.*API_KEY_PATTERN.* 

@@ -4,3 +4,5 @@
 - simplofy and use the basic framework settings and documentation
 - use the firebase documentation to set up the development and production environments
 - don't use and don't create the "app" folder again
+- don't put API keys in any files other than .env which is gitignored
+- don't put API key fallbacks
