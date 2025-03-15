@@ -51,7 +51,7 @@ export default function App({ Component, pageProps }) {
     <ErrorBoundary>
       <AuthProvider>
         {getLayout(<Component {...pageProps} />)}
-        <ToastContainer position="bottom-right" />
+        <ToastContainer position="bottom-right" theme="dark" />
       </AuthProvider>
     </ErrorBoundary>
   );

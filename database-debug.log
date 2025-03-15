@@ -3,7 +3,7 @@ WARNING: Illegal reflective access by io.netty.util.internal.ReflectionUtil (fil
 WARNING: Please consider reporting this to the maintainers of io.netty.util.internal.ReflectionUtil
 WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
 WARNING: All illegal access operations will be denied in a future release
-23:01:13.416 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
-23:01:13.521 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
-23:01:24.416 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - geobit-959c9-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 94ms, init: 0ms
-23:01:24.448 [NamespaceSystem-blocking-namespace-operation-dispatcher-7] INFO com.firebase.core.namespace.StateManager - Namespace geobit-959c9-default-rtdb status Active to Active
+00:04:21.993 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+00:04:22.098 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
+00:04:33.051 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - geobit-959c9-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 109ms, init: 0ms
+00:04:33.082 [NamespaceSystem-blocking-namespace-operation-dispatcher-6] INFO com.firebase.core.namespace.StateManager - Namespace geobit-959c9-default-rtdb status Active to Active

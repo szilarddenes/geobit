@@ -10,14 +10,14 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 
-// Import all functions from modules
-const aiModule = require('./src/ai');
-
 // Initialize admin SDK if not already initialized
 const admin = require('firebase-admin');
 if (!admin.apps.length) {
     admin.initializeApp();
 }
+
+// Import all functions from modules
+const aiModule = require('./src/ai');
 
 // Re-export AI functions
 exports.processArticleContent = aiModule.processArticleContent;

@@ -3,11 +3,11 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
-import { FiArrowLeft, FiLoader, FiCpu, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiLoader, FiCpu, FiCheckCircle, FiAlertCircle, FiCheck, FiAlertTriangle } from 'react-icons/fi';
 
 // Admin components
 import AdminLayout from '@/components/admin/AdminLayout';
-import { processArticleContent } from '@/lib/api';
+import { processArticleContent } from '@/lib/api/ai';
 
 export default function ProcessContent() {
     const router = useRouter();
@@ -18,6 +18,7 @@ export default function ProcessContent() {
         content: ''
     });
     const [result, setResult] = useState(null);
+    const [error, setError] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -29,31 +30,48 @@ export default function ProcessContent() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!formData.url || !formData.content) {
-            toast.error('URL and content are required');
-            return;
-        }
-
         setLoading(true);
+        setError(null);
         setResult(null);
 
         try {
-            const processResult = await processArticleContent({
+            // Validate inputs
+            if (!formData.url || !formData.title || !formData.content) {
+                throw new Error('All fields are required');
+            }
+
+            // Process content with AI
+            const result = await processArticleContent({
                 url: formData.url,
-                title: formData.title || 'Article from URL',
+                title: formData.title,
                 content: formData.content
             });
 
-            if (processResult.success) {
-                setResult(processResult.result);
-                toast.success('Article processed successfully!');
-            } else {
-                throw new Error(processResult.error || 'Failed to process article');
+            setResult(result);
+            // Clear form on success
+            setFormData({
+                url: '',
+                title: '',
+                content: ''
+            });
+        } catch (err) {
+            console.error('Error processing content:', err);
+            setError(err.message || 'Error processing content');
+
+            // In development mode, provide sample response
+            if (process.env.NODE_ENV === 'development') {
+                setTimeout(() => {
+                    setResult({
+                        summary: 'This is a sample AI-generated summary of the article content that highlights the key points about geoscience topics.',
+                        categories: ['Geology', 'Mining', 'Exploration'],
+                        keywords: ['geothermal', 'minerals', 'survey', 'lithium', 'resources'],
+                        sentiment: 'positive',
+                        relevanceScore: 0.85,
+                        readabilityScore: 'medium',
+                        aiInsights: 'This article contains valuable information for the geoscience community, particularly those interested in mineral exploration. The findings could impact resource allocation strategies.'
+                    });
+                }, 2000);
             }
-        } catch (error) {
-            console.error('Error processing article:', error);
-            toast.error(error.message || 'Failed to process article content');
         } finally {
             setLoading(false);
         }
@@ -80,195 +98,147 @@ export default function ProcessContent() {
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
 
-            <div className="mb-6">
-                <Link
-                    href="/admin/dashboard"
-                    className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-                >
-                    <FiArrowLeft className="mr-2" /> Back to Dashboard
-                </Link>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold text-light">Process Content with AI</h1>
+                    <div className="flex items-center text-light-muted bg-dark-lighter px-3 py-1 rounded-md">
+                        <FiCpu className="mr-2" />
+                        <span>AI-Powered Analysis</span>
+                    </div>
+                </div>
 
-                <h1 className="text-2xl font-bold text-slate-800 flex items-center">
-                    <FiCpu className="mr-2" /> Process Content with AI
-                </h1>
-                <p className="text-slate-600">
-                    Enter article details below to generate AI summaries, categories, and interest ratings.
-                </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-bold text-slate-800 mb-4">
-                        Article Details
-                    </h2>
-
+                <div className="bg-dark-lighter border border-dark-border rounded-lg p-6 shadow-lg">
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label htmlFor="url" className="block text-sm font-medium text-slate-700 mb-1">
-                                Article URL *
+                            <label htmlFor="url" className="block text-light mb-1 font-medium">
+                                Article URL
                             </label>
                             <input
                                 type="url"
                                 id="url"
-                                name="url"
+                                className="w-full p-2 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="https://example.com/article"
                                 value={formData.url}
                                 onChange={handleChange}
-                                placeholder="https://example.com/article"
-                                required
-                                className="w-full p-2 border border-slate-300 rounded-md"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
-                                Article Title (optional)
+                            <label htmlFor="title" className="block text-light mb-1 font-medium">
+                                Article Title
                             </label>
                             <input
                                 type="text"
                                 id="title"
-                                name="title"
+                                className="w-full p-2 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="Enter article title"
                                 value={formData.title}
                                 onChange={handleChange}
-                                placeholder="Title will be extracted from content if not provided"
-                                className="w-full p-2 border border-slate-300 rounded-md"
                             />
                         </div>
 
                         <div>
-                            <label htmlFor="content" className="block text-sm font-medium text-slate-700 mb-1">
-                                Article Content *
+                            <label htmlFor="content" className="block text-light mb-1 font-medium">
+                                Article Content
                             </label>
                             <textarea
                                 id="content"
-                                name="content"
+                                rows="8"
+                                className="w-full p-2 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="Paste article content here"
                                 value={formData.content}
                                 onChange={handleChange}
-                                placeholder="Paste the full article content here..."
-                                required
-                                rows={10}
-                                className="w-full p-2 border border-slate-300 rounded-md font-mono text-sm"
-                            />
+                            ></textarea>
                         </div>
 
-                        <div>
+                        <div className="flex justify-end">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50 flex items-center"
+                                className="bg-primary hover:bg-primary/80 text-dark font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-primary transition-colors disabled:opacity-50"
                             >
                                 {loading ? (
-                                    <>
-                                        <FiLoader className="animate-spin mr-2" />
+                                    <span className="flex items-center">
+                                        <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-dark rounded-full"></span>
                                         Processing...
-                                    </>
+                                    </span>
                                 ) : (
-                                    <>
+                                    <span className="flex items-center">
                                         <FiCpu className="mr-2" />
                                         Process with AI
-                                    </>
+                                    </span>
                                 )}
                             </button>
                         </div>
                     </form>
-                </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <h2 className="text-xl font-bold text-slate-800 mb-4">
-                        Processing Results
-                    </h2>
-
-                    {loading ? (
-                        <div className="py-8 text-center">
-                            <div className="inline-block animate-spin mb-4">
-                                <FiLoader size={32} className="text-purple-600" />
-                            </div>
-                            <p className="text-slate-600">
-                                Processing article content with AI...
-                            </p>
-                            <p className="text-slate-500 text-sm mt-2">
-                                This may take up to 30 seconds depending on article length.
-                            </p>
+                    {error && (
+                        <div className="mt-6 p-4 bg-red-900/20 text-red-500 rounded-lg flex items-start">
+                            <FiAlertTriangle className="mr-2 mt-1 flex-shrink-0" />
+                            <p>{error}</p>
                         </div>
-                    ) : result ? (
-                        <div className="space-y-6">
-                            <div className="border-b pb-4">
-                                <div className="flex items-center">
-                                    <FiCheckCircle className="text-green-500 mr-2" size={20} />
-                                    <h3 className="font-medium text-slate-800">Processing Complete</h3>
-                                </div>
-                                <p className="text-slate-600 text-sm mt-2">
-                                    The article has been successfully processed with our AI models.
-                                </p>
-                            </div>
+                    )}
 
-                            <div>
-                                <h3 className="font-medium text-slate-800 mb-2">Summary</h3>
-                                <div className="bg-slate-50 p-3 rounded-md">
-                                    <p className="text-slate-700">{result.summary}</p>
-                                </div>
-                            </div>
-
-                            <div className="grid md:grid-cols-2 gap-4">
+                    {result && (
+                        <div className="mt-6 p-4 bg-dark-light rounded-lg border border-dark-border">
+                            <h3 className="text-lg font-bold text-light mb-4 flex items-center">
+                                <FiCheck className="text-green-500 mr-2" />
+                                Processed Content
+                            </h3>
+                            <div className="space-y-4">
                                 <div>
-                                    <h3 className="font-medium text-slate-800 mb-2">Category</h3>
-                                    <div className="bg-slate-50 p-3 rounded-md">
-                                        <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">
-                                            {result.category}
-                                        </span>
-                                        {result.subCategories?.map((cat, index) => (
-                                            <span key={index} className="inline-block bg-slate-100 text-slate-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded">
-                                                {cat}
-                                            </span>
-                                        ))}
+                                    <h4 className="text-primary font-medium mb-1">Summary</h4>
+                                    <p className="text-light">{result.summary}</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <h4 className="text-primary font-medium mb-1">Categories</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {result.categories?.map((category, i) => (
+                                                <span key={i} className="bg-dark-border px-2 py-1 rounded text-light text-sm">
+                                                    {category}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div>
-                                    <h3 className="font-medium text-slate-800 mb-2">Interest Level</h3>
-                                    <div className="bg-slate-50 p-3 rounded-md">
-                                        <div className="flex items-center">
-                                            <div className="w-full bg-slate-200 rounded-full h-4">
-                                                <div
-                                                    className={`h-4 rounded-full ${result.interestLevel > 75 ? 'bg-green-500' :
-                                                            result.interestLevel > 50 ? 'bg-blue-500' :
-                                                                result.interestLevel > 25 ? 'bg-amber-500' : 'bg-red-500'
-                                                        }`}
-                                                    style={{ width: `${result.interestLevel}%` }}
-                                                ></div>
-                                            </div>
-                                            <span className="ml-2 font-medium">{result.interestLevel}%</span>
+                                    <div>
+                                        <h4 className="text-primary font-medium mb-1">Keywords</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {result.keywords?.map((keyword, i) => (
+                                                <span key={i} className="bg-dark-border px-2 py-1 rounded text-light text-sm">
+                                                    {keyword}
+                                                </span>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div>
-                                <h3 className="font-medium text-slate-800 mb-2">Key Points</h3>
-                                <ul className="list-disc pl-5 space-y-1 text-slate-700">
-                                    {result.keyPoints?.map((point, index) => (
-                                        <li key={index}>{point}</li>
-                                    )) || (
-                                            <li>No key points extracted</li>
-                                        )}
-                                </ul>
-                            </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <h4 className="text-primary font-medium mb-1">Sentiment</h4>
+                                        <p className="text-light capitalize">{result.sentiment}</p>
+                                    </div>
 
-                            <div className="pt-4 border-t mt-6">
-                                <button
-                                    onClick={handleSaveToLibrary}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 flex items-center"
-                                >
-                                    <FiCheckCircle className="mr-2" />
-                                    Save to Content Library
-                                </button>
+                                    <div>
+                                        <h4 className="text-primary font-medium mb-1">Relevance Score</h4>
+                                        <p className="text-light">{result.relevanceScore * 100}%</p>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-primary font-medium mb-1">Readability</h4>
+                                        <p className="text-light capitalize">{result.readabilityScore}</p>
+                                    </div>
+                                </div>
+
+                                {result.aiInsights && (
+                                    <div>
+                                        <h4 className="text-primary font-medium mb-1">AI Insights</h4>
+                                        <p className="text-light">{result.aiInsights}</p>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ) : (
-                        <div className="py-8 text-center">
-                            <FiAlertCircle size={32} className="text-slate-400 inline-block mb-4" />
-                            <p className="text-slate-600">
-                                Enter article details and click "Process with AI" to generate results.
-                            </p>
                         </div>
                     )}
                 </div>

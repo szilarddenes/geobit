@@ -1,4 +1,4 @@
-(node:21768) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(node:46538) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 i  emulators: Starting emulators: auth, functions, firestore, database, hosting, extensions
 
@@ -32,27 +32,12 @@ i  hosting[geobit-959c9]: Serving hosting files from: .firebase/geobit-959c9/hos
 i  functions: Watching "/Users/solid.garden/@dev/geobit/functions" for Cloud Functions...
 ⚠  functions: Your requested "node" version "18" doesn't match your global version "22". Using node@22 from host.
 i  functions: Loaded environment variables from .env.
-Serving at port 8930
+Serving at port 8803
 
-FirebaseAppError: The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.
-    at AppStore.getApp (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-admin/lib/app/lifecycle.js:65:19)
-    at FirebaseNamespaceInternals.app (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-admin/lib/app/firebase-namespace.js:54:35)
-    at FirebaseNamespace.app (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-admin/lib/app/firebase-namespace.js:256:30)
-    at FirebaseNamespace.ensureApp (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-admin/lib/app/firebase-namespace.js:266:24)
-    at FirebaseNamespace.fn (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-admin/lib/app/firebase-namespace.js:136:25)
-    at Object.<anonymous> (/Users/solid.garden/@dev/geobit/functions/src/ai/process-content.js:6:36)
-    at Module._compile (node:internal/modules/cjs/loader:1562:14)
-    at Object..js (node:internal/modules/cjs/loader:1699:10)
-    at Module.load (node:internal/modules/cjs/loader:1313:32)
-    at Function._load (node:internal/modules/cjs/loader:1123:12) {
-  errorInfo: {
-    code: 'app/no-app',
-    message: 'The default Firebase app does not exist. Make sure you call initializeApp() before using any of the Firebase services.'
-  },
-  codePrefix: 'app'
-}
-
-⬢  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error
+⚠  functions: Your GOOGLE_APPLICATION_CREDENTIALS environment variable points to /Users/solid.garden/.config/firebase/solid_garden.dev_gmail.com_application_default_credentials.json. Non-emulated services will access production using these credentials. Be careful!
+✔  functions: Loaded functions definitions from source: processArticleContent, searchGeoscienceNews.
+✔  functions[us-central1-processArticleContent]: http function initialized (http://127.0.0.1:5001/geobit-959c9/us-central1/processArticleContent).
+✔  functions[us-central1-searchGeoscienceNews]: http function initialized (http://127.0.0.1:5001/geobit-959c9/us-central1/searchGeoscienceNews).
 i  functions: Watching "/Users/solid.garden/@dev/geobit/.firebase/geobit-959c9/functions" for Cloud Functions...
 ⚠  functions: Your requested "node" version "20" doesn't match your global version "22". Using node@22 from host.
 ⬢  functions: Failed to load function definition from source: FirebaseError: Failed to load environment variables from .env.
@@ -84,3 +69,45 @@ i  functions: Watching "/Users/solid.garden/@dev/geobit/.firebase/geobit-959c9/f
 [90m└─────────────────────────[39m[90m┴───────────────[39m[90m┴─────────────────────┘[39m
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
+i  functions: Loaded environment variables from .env.
+>  (node:47161) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+>  (Use `node --trace-deprecation ...` to show where the warning was created)
+i  functions: Beginning execution of "us-central1-searchGeoscienceNews"
+i  functions: Finished "us-central1-searchGeoscienceNews" in 1.831417ms
+i  functions: Beginning execution of "us-central1-searchGeoscienceNews"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  Error searching news: Error: Authentication required
+>      at /Users/solid.garden/@dev/geobit/functions/src/ai/search-news.js:22:19
+>      at fixedLen (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-functions/lib/v2/providers/https.js:157:37)
+>      at /Users/solid.garden/@dev/geobit/functions/node_modules/firebase-functions/lib/common/providers/https.js:544:32
+>      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+>      at async runFunction (/opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:506:9)
+>      at async runHTTPS (/opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:531:5)
+>      at async /opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:694:21
+i  functions: Finished "us-central1-searchGeoscienceNews" in 9.654708ms
+i  functions: Beginning execution of "us-central1-searchGeoscienceNews"
+i  functions: Finished "us-central1-searchGeoscienceNews" in 2.915417ms
+i  functions: Beginning execution of "us-central1-searchGeoscienceNews"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  Error searching news: Error: Authentication required
+>      at /Users/solid.garden/@dev/geobit/functions/src/ai/search-news.js:22:19
+>      at fixedLen (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-functions/lib/v2/providers/https.js:157:37)
+>      at /Users/solid.garden/@dev/geobit/functions/node_modules/firebase-functions/lib/common/providers/https.js:544:32
+>      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+>      at async runFunction (/opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:506:9)
+>      at async runHTTPS (/opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:531:5)
+>      at async /opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:694:21
+i  functions: Finished "us-central1-searchGeoscienceNews" in 6.591208ms
+i  functions: Beginning execution of "us-central1-searchGeoscienceNews"
+i  functions: Finished "us-central1-searchGeoscienceNews" in 2.779541ms
+i  functions: Beginning execution of "us-central1-searchGeoscienceNews"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  Error searching news: Error: Authentication required
+>      at /Users/solid.garden/@dev/geobit/functions/src/ai/search-news.js:22:19
+>      at fixedLen (/Users/solid.garden/@dev/geobit/functions/node_modules/firebase-functions/lib/v2/providers/https.js:157:37)
+>      at /Users/solid.garden/@dev/geobit/functions/node_modules/firebase-functions/lib/common/providers/https.js:544:32
+>      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+>      at async runFunction (/opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:506:9)
+>      at async runHTTPS (/opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:531:5)
+>      at async /opt/homebrew/lib/node_modules/firebase-tools/lib/emulator/functionsEmulatorRuntime.js:694:21
+i  functions: Finished "us-central1-searchGeoscienceNews" in 3.275417ms

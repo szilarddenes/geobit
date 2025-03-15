@@ -15,7 +15,8 @@ import {
   FiArchive,
   FiRefreshCw,
   FiSearch,
-  FiCpu
+  FiCpu,
+  FiAlertTriangle
 } from 'react-icons/fi';
 import LoadingState from '@/components/LoadingState';
 import { toast } from 'react-toastify';
@@ -28,6 +29,8 @@ import {
 } from '@/lib/firebase';
 import ApiStatusIndicator from '@/components/admin/ApiStatusIndicator';
 import { processArticleContent, searchGeoscienceNews } from '@/lib/api';
+import { signInWithEmailAndPassword, getAuth } from 'firebase/auth';
+import { getFirebaseApp } from '../../lib/firebase';
 
 // Admin layout
 const AdminLayout = ({ children, title }) => {
@@ -79,6 +82,15 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if already logged in
+    const adminToken = localStorage.getItem('geobit_admin_token');
+    if (adminToken) {
+      router.push('/admin/dashboard');
+    }
+  }, [router]);
 
   // If there's a Firebase auth error from context, display it
   useEffect(() => {
@@ -87,17 +99,74 @@ const LoginForm = () => {
     }
   }, [authError]);
 
-  const handleEmailLogin = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
-    setError('');
 
     try {
-      await loginWithEmail(email, password);
+      // Sign in with Firebase Authentication
+      const user = await loginWithEmail(email, password);
+
+      // Get ID token
+      const idToken = await user.getIdToken();
+
+      // Verify admin status - In development mode, we'll just use local verification
+      const isAdmin = process.env.NODE_ENV === 'development'
+        ? await verifyAdminLocally(idToken, user.email)
+        : await verifyAdminWithAPI(idToken);
+
+      if (isAdmin) {
+        // Save token to localStorage for subsequent requests
+        localStorage.setItem('geobit_admin_token', idToken);
+
+        // Redirect to admin dashboard
+        router.push('/admin/dashboard');
+      } else {
+        throw new Error('You do not have admin privileges');
+      }
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
-    } finally {
+      console.error('Login error:', err);
+      setError(err.message || 'Failed to log in');
       setIsLoading(false);
+    }
+  };
+
+  // Local admin verification for development mode
+  const verifyAdminLocally = async (token, email) => {
+    // In development, we'll consider the test account as admin
+    if (email === 'test@test.test') {
+      return true;
+    }
+
+    // For other development accounts, simulate an API check
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(email.endsWith('@geobit.tech'));
+      }, 500);
+    });
+  };
+
+  // API verification for production
+  const verifyAdminWithAPI = async (token) => {
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Admin verification failed');
+      }
+
+      const data = await response.json();
+      return data.isAdmin;
+    } catch (err) {
+      console.error('Admin verification error:', err);
+      throw err;
     }
   };
 
@@ -117,115 +186,93 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-dark-card rounded-lg shadow-dark-md p-8 border border-dark-border">
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-primary">Admin Login</h2>
-        <p className="text-light-muted mt-1">Sign in to access the admin dashboard</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-dark">
+      <Head>
+        <title>Admin Login - GeoBit</title>
+        <meta name="description" content="GeoBit Admin Login" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex, nofollow" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
 
-      {error && (
-        <div className="mb-4 bg-dark-light text-red-400 p-3 rounded border border-red-800 text-sm">
-          {error.includes('Firebase') ? 'Authentication service error. Please try again later.' : error}
+      <div className="w-full max-w-md p-8 bg-dark-lighter rounded-lg shadow-lg border border-dark-border">
+        <div className="flex flex-col items-center mb-6">
+          <img
+            src="/logo3.svg"
+            alt="GeoBit Logo"
+            width={220}
+            height={60}
+            className="h-14 w-auto mb-4"
+          />
+          <h1 className="text-2xl font-bold text-light">Admin Login</h1>
         </div>
-      )}
 
-      {/* Google Login Button - Highlighted */}
-      <div className="mb-6 border-2 border-primary p-1 rounded-lg">
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className={cn(
-            "w-full flex items-center justify-center py-3 px-4 rounded-md bg-white shadow-dark-sm",
-            "text-gray-700 font-medium border border-gray-200 hover:bg-gray-50 transition-colors",
-            isLoading && "opacity-70 cursor-not-allowed"
-          )}
-        >
-          <FcGoogle className="w-6 h-6 mr-2" />
-          <span>Sign in with Google</span>
-        </button>
-      </div>
+        {error && (
+          <div className="mb-6 p-4 bg-red-900/20 rounded-md text-red-500 flex items-center">
+            <FiAlertTriangle className="mr-2 flex-shrink-0" />
+            <p>{error}</p>
+          </div>
+        )}
 
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-dark-border"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-dark-card text-light-muted">Or continue with email</span>
-        </div>
-      </div>
-
-      <form onSubmit={handleEmailLogin} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-light mb-1">
-            Email Address
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiMail className="h-5 w-5 text-light-muted" />
-            </div>
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-light font-medium mb-1">
+              Email
+            </label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-dark-border rounded-md shadow-dark-sm bg-dark-light text-light focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="admin@example.com"
               required
+              className="w-full p-3 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="admin@example.com"
             />
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-light mb-1">
-            Password
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiLock className="h-5 w-5 text-light-muted" />
-            </div>
+          <div>
+            <label htmlFor="password" className="block text-light font-medium mb-1">
+              Password
+            </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-dark-border rounded-md shadow-dark-sm bg-dark-light text-light focus:ring-primary focus:border-primary sm:text-sm"
               required
+              className="w-full p-3 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="••••••••"
             />
           </div>
-        </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={cn(
-            "w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-dark-sm text-sm font-medium text-dark bg-primary hover:bg-primary-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary",
-            isLoading && "opacity-70 cursor-not-allowed"
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-primary hover:bg-primary/80 text-dark font-bold py-3 px-4 rounded focus:outline-none focus:ring-2 focus:ring-primary transition-colors disabled:opacity-50 flex items-center justify-center"
+            >
+              {isLoading ? (
+                <span className="flex items-center">
+                  <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-dark rounded-full"></span>
+                  Signing In...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  <FiLock className="mr-2" />
+                  Sign In
+                </span>
+              )}
+            </button>
+          </div>
+
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-center text-light-muted text-sm mt-4">
+              <p className="mb-1">For development/testing:</p>
+              <p>Email: test@test.test</p>
+              <p>Password: testtest</p>
+            </div>
           )}
-        >
-          {isLoading ? 'Signing in...' : 'Sign in'}
-        </button>
-      </form>
-
-      <div className="mt-6 text-center">
-        <p className="text-xs text-light-muted">Access restricted to authorized administrators only</p>
-      </div>
-
-      {/* Session Troubleshooting Section */}
-      <div className="mt-8 pt-6 border-t border-dark-border">
-        <div className="text-center">
-          <h3 className="text-sm font-medium text-light-muted mb-2">Having trouble signing in?</h3>
-          <button
-            onClick={() => {
-              localStorage.clear();
-              sessionStorage.clear();
-              window.location.reload();
-            }}
-            className="text-xs bg-dark-light text-primary px-3 py-1 rounded hover:bg-dark-lighter transition-colors inline-flex items-center border border-dark-border"
-          >
-            <FiLogOut className="mr-1" />
-            <span>Clear Session & Reload</span>
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );

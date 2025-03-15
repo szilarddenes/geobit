@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { FiBarChart2, FiUsers, FiFileText, FiCpu, FiSearch } from 'react-icons/fi';
+import { FiBarChart2, FiUsers, FiFileText, FiCpu, FiSearch, FiLogOut } from 'react-icons/fi';
+import Head from 'next/head';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -57,11 +58,28 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex">
+    <div className="min-h-screen bg-dark flex">
+      <Head>
+        <title>GeoBit Admin</title>
+        <meta name="description" content="GeoBit Administration" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="robots" content="noindex, nofollow" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-800 text-white">
-        <div className="p-4 border-b border-slate-700">
-          <h1 className="text-xl font-bold">GeoBit Admin</h1>
+      <aside className="w-64 bg-dark-lighter border-r border-dark-border">
+        <div className="p-4 border-b border-dark-border">
+          <Link href="/" className="block">
+            <img
+              src="/logo3.svg"
+              alt="GeoBit Logo"
+              width={200}
+              height={50}
+              className="h-12 w-auto"
+            />
+          </Link>
+          <h1 className="text-xl font-bold text-primary mt-2">Admin Area</h1>
         </div>
 
         <nav className="p-4">
@@ -71,8 +89,8 @@ export default function AdminLayout({ children }) {
                 <Link
                   href={link.href}
                   className={`flex items-center px-4 py-2 rounded-md transition duration-200 ${isActiveOrHasActiveChild(link)
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-300 hover:bg-slate-700'
+                      ? 'bg-primary text-dark font-bold'
+                      : 'text-light hover:bg-dark-light'
                     }`}
                 >
                   <span className="mr-2">{link.icon}</span>
@@ -87,8 +105,8 @@ export default function AdminLayout({ children }) {
                         <Link
                           href={sublink.href}
                           className={`flex items-center px-4 py-1 text-sm rounded-md transition duration-200 ${router.pathname.startsWith(sublink.href)
-                              ? 'bg-slate-700 text-white'
-                              : 'text-slate-400 hover:bg-slate-700 hover:text-slate-300'
+                              ? 'bg-dark-light text-primary'
+                              : 'text-light-muted hover:bg-dark-light hover:text-light'
                             }`}
                         >
                           <span className="mr-2">{sublink.icon}</span>
@@ -103,18 +121,19 @@ export default function AdminLayout({ children }) {
           </ul>
         </nav>
 
-        <div className="p-4 mt-auto border-t border-slate-700">
+        <div className="p-4 mt-auto border-t border-dark-border">
           <button
             onClick={handleLogout}
-            className="block w-full px-4 py-2 text-left text-slate-300 hover:bg-slate-700 rounded-md transition duration-200"
+            className="flex items-center w-full px-4 py-2 text-left text-light-muted hover:bg-dark-light hover:text-light rounded-md transition duration-200"
           >
+            <FiLogOut className="mr-2" />
             Logout
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 p-8 overflow-auto bg-dark">
         {children}
       </main>
     </div>
