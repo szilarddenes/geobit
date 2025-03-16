@@ -18,7 +18,8 @@
     "create:admin": "node scripts/create-test-admin.js",
     "dev:admin": "node scripts/start-dev-with-admin.js",
     "direct:admin": "node scripts/create-direct-admin.js",
-    "dev:bash": "./scripts/dev-with-admin.sh"
+    "dev:bash": "./scripts/dev-with-admin.sh",
+    "dev:simple": "node scripts/start-dev-with-admin.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.26.10",

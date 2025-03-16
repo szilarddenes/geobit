@@ -1,0 +1,79 @@
+# GeoBit Development Guidelines
+
+## Project Structure Guidelines
+- Maintain a flat structure with maximum 3 levels of nesting
+- Store reusable components in 'src/components'
+- Keep utility functions in 'src/utils'
+- AVOID creating nested 'app' folders (e.g., src/app/app/* or app/app/*)
+
+## Content Collection Sources
+### Hydrocarbon & Energy Focus
+- Oil & gas journals (AAPG, Oil and Gas Journal, Rigzone, etc.)
+- Energy intelligence platforms (SPGlobal, EnergyIntel, etc.)
+- Natural gas resources (NaturalGasIntel, etc.)
+
+### Mining Resources
+- Mining.com, Mining Journal, MiningWeekly
+- Resource World, Engineering & Mining Journal
+
+### Geopolitical & Regional Sources
+- Stratfor, Geopolitical Futures
+- Resource Governance Institute
+- Regional sources from Americas, Europe, Russia, Asia, Middle East
+
+### Academic & Research
+- Nature Earth, Science, AGU
+- USGS, NOAA, NASA Earth sciences
+- Society of Petroleum Engineers, Society of Exploration Geophysicists
+
+## Content Processing Rules
+- Summarization limited to 100 words maximum
+- Must preserve technical accuracy and attribution
+- Focus on research findings, methodology, applications, and conclusions
+
+## Content Categorization
+- Apply maximum 3 categories per content item
+- Include geographic tagging
+- Tag content type (academic, industry, government, educational)
+
+## Newsletter Assembly
+- Prioritize high-impact research at the top
+- Include industry developments in the middle
+- Place events and conferences at the bottom
+- Include exactly 10 items per digest with at least 1 item per category
+- Limit industry items to 2 maximum
+- Always include "upcoming events" section
+
+## Newsletter Format
+- Each item includes: headline, summary paragraph, source link
+- Include maximum 1 image per digest (prefer satellite imagery or data visualizations)
+- Apply earth-tone color scheme
+- Include standard footer with unsubscribe option
+
+## Subscription Options
+- Require email field only
+- Optional fields: specialization, professional role, geographic region
+- Default delivery: Weekly on Wednesdays at 09:00 UTC
+- Allow users to filter by category
+- Offer HTML and plain text format options
+- Support both weekly and daily frequency options
+
+## Monetization Guidelines
+- Allow 1 sponsored content item per digest (middle placement)
+- Always label sponsored content clearly
+- Limit job listings to 3 per digest (placed after main content)
+- Only include affiliate links when relevant to category
+- Include disclosure for all affiliate content
+
+## Development Practices
+- Keep CSS and styling consistent
+- Follow Firebase documentation for environment setup
+- Store API keys only in .env files (which are gitignored)
+- Avoid creating unnecessary scripts or workflows
+- Regularly scan for unused files and code snippets
+- Prioritize simplicity over complexity
+
+## CURRENT IMPORTANT NOTES
+- always add to the chat context the this @.cursor/rules/sg-rules.mcd file
+- don't change the layout of the /admin page now
+- focus on the backend and API's

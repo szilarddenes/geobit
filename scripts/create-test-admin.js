@@ -1,260 +1,82 @@
-const axios = require('axios');
-const fs = require('fs');
-const path = require('path');
+// This script creates a test admin user in the Firebase Auth emulator
+// It's designed to be run after the emulators are started
+// The test user can be used to access admin routes during development
 
-// Configuration for the test admin user
-const TEST_USER = {
-    email: 'test@test.test',
-    password: 'testtest',
-    displayName: 'Test Admin',
-    localId: 'test-admin-user-id'
-};
+const admin = require('firebase-admin');
+const serviceAccount = require('../firebase-service-account.json');
 
-// Get project ID from .firebaserc
-function getProjectId() {
+// Initialize the admin SDK with emulator settings
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'http://localhost:9000?ns=geobit',
+    projectId: 'geobit'
+});
+
+// Configure to use emulators
+process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8081';
+process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';
+
+async function createTestAdmin() {
     try {
-        const firebaseRcPath = path.join(process.cwd(), '.firebaserc');
-        const firebaseRc = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
-        return firebaseRc.projects.default;
-    } catch (error) {
-        console.warn('Could not read project ID from .firebaserc:', error.message);
-        return 'geobit-959c9'; // Fallback project ID
-    }
-}
+        // Create the test user in Auth
+        console.log('Creating test admin user...');
 
-// Wait for an endpoint to be available
-async function waitForEndpoint(name, url, maxRetries = 5, retryDelay = 2000) {
-    console.log(`Checking if ${name} is accessible at ${url}`);
-
-    for (let i = 0; i < maxRetries; i++) {
+        // First check if user already exists
         try {
-            // For Auth emulator, use a different check that's more reliable
-            if (name === 'Auth emulator') {
-                // Auth emulator specific check
-                const testUrl = `${url}identitytoolkit.googleapis.com/v1/accounts:lookup?key=fake-api-key`;
-                await axios.post(testUrl, { idToken: 'invalid-test-token' }, {
-                    timeout: 3000,
-                    validateStatus: status => true // Accept any status to check if it's responding
-                });
-            } else {
-                await axios.get(url, {
-                    timeout: 3000,
-                    validateStatus: status => true // Accept any status for checking if the endpoint is up
-                });
-            }
-            console.log(`✅ ${name} is accessible at ${url}`);
-            return true;
+            const userRecord = await admin.auth().getUserByEmail('test@test.test');
+            console.log('Test admin user already exists:', userRecord.uid);
+
+            // Ensure admin role in Firestore
+            await setAdminRole(userRecord.uid);
+
+            return userRecord.uid;
         } catch (error) {
-            // Check if it's just a typical auth error (means the server is up)
-            if (error.response && error.response.status) {
-                console.log(`✅ ${name} is accessible at ${url} (responded with status ${error.response.status})`);
-                return true;
-            }
+            // User doesn't exist, create a new one
+            if (error.code === 'auth/user-not-found') {
+                const userRecord = await admin.auth().createUser({
+                    email: 'test@test.test',
+                    password: 'testtest',
+                    displayName: 'Test Admin',
+                });
 
-            if (i < maxRetries - 1) {
-                console.log(`⏳ ${name} not accessible yet. Retrying in ${retryDelay / 1000}s (${i + 1}/${maxRetries})...`);
-                console.log(`  Debug: ${error.message}`);
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                console.log('Created new test admin user:', userRecord.uid);
+
+                // Set admin role in Firestore
+                await setAdminRole(userRecord.uid);
+
+                return userRecord.uid;
             } else {
-                console.error(`❌ ${name} not accessible after ${maxRetries} attempts`);
-                console.error(`  Error details: ${error.message}`);
-                return false;
+                throw error;
             }
-        }
-    }
-    return false;
-}
-
-// Create a test user in the Auth emulator with retries
-async function createTestUser(maxRetries = 3) {
-    const projectId = getProjectId();
-    console.log(`Using project ID: ${projectId}`);
-
-    // Wait for auth and firestore endpoints with longer timeouts
-    console.log("Verifying emulator endpoints are accessible...");
-    const authEndpoint = 'http://127.0.0.1:9099/';
-    const firestoreEndpoint = 'http://127.0.0.1:8080/';
-
-    const authReady = await waitForEndpoint('Auth emulator', authEndpoint, 10, 3000);
-    if (!authReady) {
-        throw new Error('Auth emulator is not accessible');
-    }
-
-    const firestoreReady = await waitForEndpoint('Firestore emulator', firestoreEndpoint, 10, 3000);
-    if (!firestoreReady) {
-        throw new Error('Firestore emulator is not accessible');
-    }
-
-    let lastError = null;
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-            console.log(`Attempt ${attempt + 1}/${maxRetries} to create/verify test admin user`);
-
-            // Try to sign in first to see if user already exists
-            try {
-                console.log(`Checking if user ${TEST_USER.email} already exists...`);
-                const signInUrl = `http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`;
-                const signInResponse = await axios.post(signInUrl, {
-                    email: TEST_USER.email,
-                    password: TEST_USER.password,
-                    returnSecureToken: true
-                });
-
-                const userId = signInResponse.data.localId;
-                console.log(`✅ User ${TEST_USER.email} exists and authenticated successfully with ID: ${userId}`);
-
-                // Try to ensure admin claims are set
-                try {
-                    console.log('Setting admin custom claims...');
-                    // Use the emulator-specific endpoint
-                    const setCustomClaimsUrl = `http://127.0.0.1:9099/emulator/v1/projects/${projectId}/accounts/${userId}:setClaims`;
-                    await axios.post(setCustomClaimsUrl, {
-                        customClaims: { admin: true }
-                    });
-                    console.log(`✅ Set admin custom claims using emulator endpoint`);
-                } catch (claimsError) {
-                    console.warn(`⚠️ Could not set claims using emulator endpoint: ${claimsError.message}`);
-
-                    // Try with the regular endpoint as fallback
-                    try {
-                        const claimsUrl = `http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:update?key=fake-api-key`;
-                        await axios.post(claimsUrl, {
-                            localId: userId,
-                            customAttributes: JSON.stringify({ admin: true })
-                        });
-                        console.log(`✅ Set admin custom claims using regular endpoint`);
-                    } catch (regularClaimsError) {
-                        console.warn(`⚠️ Could not set claims using regular endpoint: ${regularClaimsError.message}`);
-                    }
-                }
-
-                // Ensure admin Firestore document exists
-                try {
-                    console.log('Creating/updating admin document in Firestore...');
-                    const firestoreUrl = `http://127.0.0.1:8080/v1/projects/${projectId}/databases/(default)/documents/adminUsers/${userId}`;
-                    await axios.patch(firestoreUrl, {
-                        fields: {
-                            email: { stringValue: TEST_USER.email },
-                            displayName: { stringValue: TEST_USER.displayName },
-                            addedAt: { timestampValue: new Date().toISOString() },
-                            addedBy: { stringValue: 'emulator-setup-script' }
-                        }
-                    });
-                    console.log(`✅ Created/updated admin user document in Firestore`);
-                } catch (firestoreError) {
-                    console.warn(`⚠️ Could not update Firestore document: ${firestoreError.message}`);
-                }
-
-                return true;
-            } catch (signInError) {
-                // User doesn't exist or sign-in failed, try to create
-                console.log(`User doesn't exist or sign-in failed: ${signInError.message}`);
-                console.log('Attempting to create new user...');
-            }
-
-            // Create user in Auth emulator
-            console.log(`Creating new user: ${TEST_USER.email}...`);
-            const authUrl = `http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`;
-
-            const authResponse = await axios.post(authUrl, {
-                email: TEST_USER.email,
-                password: TEST_USER.password,
-                returnSecureToken: true
-            });
-
-            const userId = authResponse.data.localId;
-            console.log(`✅ Created test user with ID: ${userId}`);
-
-            // Try both methods to set custom claims
-            try {
-                // Use the emulator-specific endpoint (more reliable)
-                const setCustomClaimsUrl = `http://127.0.0.1:9099/emulator/v1/projects/${projectId}/accounts/${userId}:setClaims`;
-                await axios.post(setCustomClaimsUrl, {
-                    customClaims: { admin: true }
-                });
-                console.log(`✅ Set admin custom claims using emulator endpoint`);
-            } catch (claimsError) {
-                console.warn(`⚠️ Could not set claims using emulator endpoint: ${claimsError.message}`);
-
-                // Try with the regular endpoint as fallback
-                try {
-                    const claimsUrl = `http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:update?key=fake-api-key`;
-                    await axios.post(claimsUrl, {
-                        localId: userId,
-                        customAttributes: JSON.stringify({ admin: true })
-                    });
-                    console.log(`✅ Set admin custom claims using regular endpoint`);
-                } catch (regularClaimsError) {
-                    console.warn(`⚠️ Could not set claims using regular endpoint: ${regularClaimsError.message}`);
-                }
-            }
-
-            // Create admin user document in Firestore
-            try {
-                const firestoreUrl = `http://127.0.0.1:8080/v1/projects/${projectId}/databases/(default)/documents/adminUsers/${userId}`;
-                await axios.patch(firestoreUrl, {
-                    fields: {
-                        email: { stringValue: TEST_USER.email },
-                        displayName: { stringValue: TEST_USER.displayName },
-                        addedAt: { timestampValue: new Date().toISOString() },
-                        addedBy: { stringValue: 'emulator-setup-script' }
-                    }
-                });
-                console.log(`✅ Created admin user document in Firestore`);
-            } catch (firestoreError) {
-                console.warn(`⚠️ Could not create Firestore document: ${firestoreError.message}`);
-            }
-
-            console.log('\n=== Test Admin User Created ===');
-            console.log(`Email: ${TEST_USER.email}`);
-            console.log(`Password: ${TEST_USER.password}`);
-            console.log(`User ID: ${userId}`);
-            console.log('Custom Claims: { "admin": true }');
-
-            return true;
-        } catch (error) {
-            lastError = error;
-            console.error(`❌ Error during attempt ${attempt + 1}: ${error.message}`);
-
-            if (error.response) {
-                console.error('Response error data:', JSON.stringify(error.response.data || {}, null, 2));
-            }
-
-            if (attempt < maxRetries - 1) {
-                console.log(`⏳ Retrying in 3 seconds...`);
-                await new Promise(resolve => setTimeout(resolve, 3000));
-            }
-        }
-    }
-
-    throw lastError || new Error('Failed to create test admin user after multiple attempts');
-}
-
-// Main function
-async function main() {
-    console.log('=== Creating Test Admin User in Firebase Emulators ===');
-
-    try {
-        const success = await createTestUser();
-        if (success) {
-            console.log('\n✅ Test admin user setup complete!');
-            console.log('You can now sign in to the application with:');
-            console.log(`Email: ${TEST_USER.email}`);
-            console.log(`Password: ${TEST_USER.password}`);
-            process.exit(0);
-        } else {
-            console.error('\n❌ Failed to set up test admin user');
-            process.exit(1);
         }
     } catch (error) {
-        console.error('\n❌ Error:', error.message);
+        console.error('Error creating test admin user:', error);
         process.exit(1);
     }
 }
 
-// Run the script
-main().catch(error => {
-    console.error('Unhandled error:', error);
-    process.exit(1);
-}); 
+// Set admin role in Firestore
+async function setAdminRole(uid) {
+    const db = admin.firestore();
+
+    await db.collection('users').doc(uid).set({
+        role: 'admin',
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+        email: 'test@test.test',
+        displayName: 'Test Admin',
+    }, { merge: true });
+
+    console.log('Set admin role for user:', uid);
+}
+
+// Run the function and exit when done
+createTestAdmin()
+    .then(() => {
+        console.log('Test admin user creation complete.');
+        process.exit(0);
+    })
+    .catch(error => {
+        console.error('Error in test admin creation script:', error);
+        process.exit(1);
+    }); 
