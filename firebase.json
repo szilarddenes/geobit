@@ -39,7 +39,7 @@
       "port": 5001
     },
     "firestore": {
-      "port": 8100
+      "port": 8110
     },
     "database": {
       "port": 9000
