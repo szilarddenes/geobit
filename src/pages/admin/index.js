@@ -24,20 +24,35 @@ export default function AdminHome() {
   });
 
   useEffect(() => {
+    console.log("AdminHome component mounted");
+
+    // In development mode, bypass admin check
+    if (process.env.NODE_ENV === 'development') {
+      console.log("Development mode: bypassing strict admin check");
+      setIsLoading(false);
+      checkApiStatus();
+      fetchRealTimeStats();
+      return;
+    }
+
     // Check if user is logged in
     const adminToken = localStorage.getItem('geobit_admin_token');
+    console.log("Admin token present:", !!adminToken);
 
     if (!adminToken) {
-      router.push('/admin');
+      router.push('/admin/login');
       return;
     }
 
     const checkAdmin = async () => {
       try {
+        console.log("Verifying admin token...");
         const isAdmin = await verifyAdminTokenLocally(adminToken);
+        console.log("Admin verification result:", isAdmin);
+
         if (!isAdmin) {
           localStorage.removeItem('geobit_admin_token');
-          router.push('/admin');
+          router.push('/admin/login');
           return;
         }
 
@@ -55,6 +70,7 @@ export default function AdminHome() {
   }, [router]);
 
   const checkApiStatus = async () => {
+    console.log("Checking API status...");
     setIsRefreshing(true);
     try {
       const status = await getApiStatus();
@@ -69,6 +85,7 @@ export default function AdminHome() {
 
       // In development mode, let's simulate a response
       if (process.env.NODE_ENV === 'development') {
+        console.log("Development mode: using mock API status");
         setApiStatus({
           status: 'ok',
           services: {
@@ -100,6 +117,7 @@ export default function AdminHome() {
   };
 
   const fetchRealTimeStats = async () => {
+    console.log("Fetching real-time stats...");
     try {
       // In a real application, you would fetch real-time data from your API
       // For this example, we'll simulate real-time data with random variations
@@ -121,6 +139,7 @@ export default function AdminHome() {
       };
 
       setStats(newStats);
+      console.log("Stats updated:", newStats);
     } catch (err) {
       console.error("Error fetching real-time stats:", err);
     }
@@ -156,7 +175,7 @@ export default function AdminHome() {
       await signOut(auth);
       localStorage.removeItem('geobit_admin_token');
       toast.success('Signed out successfully');
-      router.push('/admin');
+      router.push('/admin/login');
     } catch (err) {
       console.error("Error signing out:", err);
       toast.error("Error signing out");
@@ -170,6 +189,8 @@ export default function AdminHome() {
   const navigateToSearchNews = () => {
     router.push('/admin/content/search');
   };
+
+  console.log("Render state:", { isLoading, error, apiStatus });
 
   if (isLoading) {
     return (
@@ -194,7 +215,7 @@ export default function AdminHome() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 h-screen overflow-y-auto pb-8">
+      <div className="space-y-6 overflow-y-auto pb-8">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-light">Admin Dashboard</h1>
 
@@ -389,7 +410,7 @@ export default function AdminHome() {
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-light-muted text-sm">API Requests</span>
-                    <span className="text-light text-sm">{Math.floor(Math.random() * 1000 + 5000)}/day</span>
+                    <span className="text-light text-sm">5842/day</span>
                   </div>
                   <div className="w-full bg-dark rounded-full h-2">
                     <div className="bg-primary h-2 rounded-full" style={{ width: '65%' }}></div>
@@ -399,7 +420,7 @@ export default function AdminHome() {
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-light-muted text-sm">CPU Usage</span>
-                    <span className="text-light text-sm">{Math.floor(Math.random() * 20 + 30)}%</span>
+                    <span className="text-light text-sm">42%</span>
                   </div>
                   <div className="w-full bg-dark rounded-full h-2">
                     <div className="bg-green-500 h-2 rounded-full" style={{ width: '45%' }}></div>
@@ -409,7 +430,7 @@ export default function AdminHome() {
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-light-muted text-sm">Memory Usage</span>
-                    <span className="text-light text-sm">{Math.floor(Math.random() * 30 + 60)}%</span>
+                    <span className="text-light text-sm">78%</span>
                   </div>
                   <div className="w-full bg-dark rounded-full h-2">
                     <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '75%' }}></div>

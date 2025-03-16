@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { FiBarChart2, FiUsers, FiFileText, FiCpu, FiSearch, FiLogOut } from 'react-icons/fi';
+import { FiBarChart2, FiUsers, FiFileText, FiCpu, FiSearch, FiLogOut, FiHome, FiSettings, FiMenu } from 'react-icons/fi';
 import Head from 'next/head';
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     // Clear admin token
@@ -12,6 +14,10 @@ export default function AdminLayout({ children }) {
 
     // Redirect to login
     router.push('/admin');
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   // Navigation links
@@ -58,84 +64,76 @@ export default function AdminLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-dark flex">
+    <div className="min-h-screen bg-dark text-light flex flex-col">
       <Head>
         <title>GeoBit Admin</title>
-        <meta name="description" content="GeoBit Administration" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="robots" content="noindex, nofollow" />
-        <link rel="icon" href="/favicon.ico" />
+        <meta name="description" content="GeoBit Admin Dashboard" />
       </Head>
 
-      {/* Sidebar */}
-      <aside className="w-64 bg-dark-lighter border-r border-dark-border">
-        <div className="p-4 border-b border-dark-border">
-          <Link href="/" className="block">
-            <img
-              src="/logo3.svg"
-              alt="GeoBit Logo"
-              width={200}
-              height={50}
-              className="h-12 w-auto"
-            />
-          </Link>
-          <h1 className="text-xl font-bold text-primary mt-2">Admin Area</h1>
-        </div>
+      {/* Mobile Menu Button */}
+      <div className="lg:hidden p-4 bg-dark-lighter border-b border-dark-border">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 text-light hover:bg-dark-light rounded-md"
+        >
+          <FiMenu className="h-6 w-6" />
+        </button>
+      </div>
 
-        <nav className="p-4">
-          <ul className="space-y-2">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className={`flex items-center px-4 py-2 rounded-md transition duration-200 ${isActiveOrHasActiveChild(link)
-                      ? 'bg-primary text-dark font-bold'
-                      : 'text-light hover:bg-dark-light'
-                    }`}
-                >
-                  <span className="mr-2">{link.icon}</span>
-                  {link.label}
-                </Link>
+      <div className="flex flex-grow overflow-hidden">
+        {/* Sidebar */}
+        <aside
+          className={`bg-dark-lighter border-r border-dark-border fixed inset-y-0 left-0 z-20 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            } lg:static lg:w-64 lg:min-h-screen overflow-y-auto`}
+        >
+          <div className="p-6 border-b border-dark-border">
+            <h1 className="text-2xl font-bold text-primary">GeoBit Admin</h1>
+          </div>
 
-                {/* Display sublinks if present and parent is active or has active child */}
-                {link.sublinks && (
-                  <ul className="ml-4 mt-1 space-y-1">
-                    {link.sublinks.map((sublink) => (
-                      <li key={sublink.href}>
-                        <Link
-                          href={sublink.href}
-                          className={`flex items-center px-4 py-1 text-sm rounded-md transition duration-200 ${router.pathname.startsWith(sublink.href)
-                              ? 'bg-dark-light text-primary'
-                              : 'text-light-muted hover:bg-dark-light hover:text-light'
-                            }`}
-                        >
-                          <span className="mr-2">{sublink.icon}</span>
-                          {sublink.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
+          <nav className="p-4 space-y-1">
+            <Link
+              href="/admin"
+              className="flex items-center p-3 text-light hover:bg-dark-light rounded-md group transition-colors"
+            >
+              <FiHome className="mr-3 text-lg text-primary" />
+              Dashboard
+            </Link>
+            <Link
+              href="/admin/subscribers"
+              className="flex items-center p-3 text-light hover:bg-dark-light rounded-md group transition-colors"
+            >
+              <FiUsers className="mr-3 text-lg text-primary" />
+              Subscribers
+            </Link>
+            <Link
+              href="/admin/content"
+              className="flex items-center p-3 text-light hover:bg-dark-light rounded-md group transition-colors"
+            >
+              <FiFileText className="mr-3 text-lg text-primary" />
+              Content
+            </Link>
+            <Link
+              href="/admin/analytics"
+              className="flex items-center p-3 text-light hover:bg-dark-light rounded-md group transition-colors"
+            >
+              <FiBarChart2 className="mr-3 text-lg text-primary" />
+              Analytics
+            </Link>
+            <Link
+              href="/admin/settings"
+              className="flex items-center p-3 text-light hover:bg-dark-light rounded-md group transition-colors"
+            >
+              <FiSettings className="mr-3 text-lg text-primary" />
+              Settings
+            </Link>
+          </nav>
+        </aside>
 
-        <div className="p-4 mt-auto border-t border-dark-border">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-left text-light-muted hover:bg-dark-light hover:text-light rounded-md transition duration-200"
-          >
-            <FiLogOut className="mr-2" />
-            Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main className="flex-1 p-8 overflow-auto bg-dark">
-        {children}
-      </main>
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto h-screen bg-dark p-6 lg:px-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }

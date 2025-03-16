@@ -72,3 +72,8 @@
 - Avoid creating unnecessary scripts or workflows
 - Regularly scan for unused files and code snippets
 - Prioritize simplicity over complexity
+
+## CURRENT IMPORTANT NOTES
+- always add to the chat context the this @.cursor/rules/sg-rules.mcd file
+- don't change the layout of the /admin page now
+- focus on the backend and API's
