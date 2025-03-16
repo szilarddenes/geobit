@@ -32,6 +32,11 @@
       "static/chunks/main.js",
       "static/chunks/pages/admin.js"
     ],
+    "/admin/content/process": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/admin/content/process.js"
+    ],
     "/admin/content/search": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
@@ -41,6 +46,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/admin/dashboard.js"
+    ],
+    "/admin/newsletters": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/admin/newsletters.js"
     ]
   },
   "ampFirstPages": []
