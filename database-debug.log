@@ -3,7 +3,11 @@ WARNING: Illegal reflective access by io.netty.util.internal.ReflectionUtil (fil
 WARNING: Please consider reporting this to the maintainers of io.netty.util.internal.ReflectionUtil
 WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
 WARNING: All illegal access operations will be denied in a future release
-15:20:24.824 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
-15:20:24.926 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
-15:20:39.659 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - geobit-959c9-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 84ms, init: 0ms
-15:20:39.700 [NamespaceSystem-blocking-namespace-operation-dispatcher-7] INFO com.firebase.core.namespace.StateManager - Namespace geobit-959c9-default-rtdb status Active to Active
+16:14:36.913 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
+16:14:37.014 [main] INFO com.firebase.server.forge.App$ - Listening at 127.0.0.1:9000
+16:14:37.416 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - geobit-959c9-default-rtdb successfully activated FBKV (SurveyIdle(0)) wait: 81ms, init: 0ms
+16:14:37.445 [NamespaceSystem-blocking-namespace-operation-dispatcher-7] INFO com.firebase.core.namespace.StateManager - Namespace geobit-959c9-default-rtdb status Active to Active
+16:14:43.601 [Thread-0] INFO com.firebase.server.forge.App$ - Attempting graceful shutdown.
+16:14:43.609 [NamespaceSystem-akka.actor.default-dispatcher-5] INFO com.firebase.core.namespace.Terminator$Terminator - 1 actors left to terminate: geobit-959c9-default-rtdb
+16:14:43.617 [NamespaceSystem-akka.actor.default-dispatcher-4] INFO com.firebase.core.namespace.NamespaceActor - stopped namespace actor for geobit-959c9-default-rtdb
+16:14:43.621 [Thread-0] INFO com.firebase.server.forge.App$ - Graceful shutdown complete.

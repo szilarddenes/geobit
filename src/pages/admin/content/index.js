@@ -282,14 +282,15 @@ export default function ContentManagement() {
 
     return (
         <AdminLayout>
-            <div className="h-full flex flex-col">
+            <div className="h-full flex flex-col overflow-hidden">
                 <div className="px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                     <h1 className="text-2xl font-semibold text-gray-900">Content Management</h1>
-                    <Link href="/admin/content/create">
-                        <a className="mt-2 sm:mt-0 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <FaPlus className="mr-2" size={14} />
-                            Add Content
-                        </a>
+                    <Link
+                        href="/admin/content/create"
+                        className="mt-2 sm:mt-0 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        <FaPlus className="mr-2" size={14} />
+                        Add Content
                     </Link>
                 </div>
 
@@ -334,10 +335,10 @@ export default function ContentManagement() {
                             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
                         </div>
                     ) : (
-                        <div className="h-full">
+                        <div className="h-full flex flex-col">
                             {showMobile ? <MobileView /> : (
                                 <div className="h-full flex flex-col">
-                                    <div className="overflow-x-auto flex-grow">
+                                    <div className="overflow-auto flex-grow">
                                         <table className="min-w-full divide-y divide-dark-border">
                                             <thead className="bg-dark">
                                                 <tr>
@@ -410,8 +411,8 @@ export default function ContentManagement() {
                                     {/* Pagination */}
                                     {totalPages > 1 && (
                                         <div className="px-3 py-2 border-t border-dark-border mt-auto">
-                                            <div className="flex justify-between items-center">
-                                                <div className="text-xs text-light-muted">
+                                            <div className="flex flex-col sm:flex-row justify-between items-center">
+                                                <div className="text-xs text-light-muted mb-2 sm:mb-0">
                                                     {indexOfFirstItem + 1}-{indexOfLastItem > filteredItems.length ? filteredItems.length : indexOfLastItem} of {filteredItems.length}
                                                 </div>
                                                 <div className="flex space-x-1">

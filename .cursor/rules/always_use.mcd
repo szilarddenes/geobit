@@ -76,4 +76,5 @@
 ## CURRENT IMPORTANT NOTES
 - always add to the chat context the this @.cursor/rules/sg-rules.mcd file
 - don't change the layout of the /admin page now
-- focus on the backend and API's
+- focus on the backend and API's-
+- I am running multiple processes sometime, that's why you are changing the ports. I always want to run the emulatro and servers on the default port. If you find the default port running, kill it, but don't change the ports.
