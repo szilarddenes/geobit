@@ -28,7 +28,7 @@ import {
   getApiStatus
 } from '@/lib/firebase';
 import ApiStatusIndicator from '@/components/admin/ApiStatusIndicator';
-import { processArticleContent, searchGeoscienceNews } from '@/lib/api';
+import api from '@/lib/api';
 import { signInWithEmailAndPassword, getAuth } from 'firebase/auth';
 import { getFirebaseApp } from '../../lib/firebase';
 
@@ -409,7 +409,7 @@ const EnhancedDashboard = () => {
     toast.info('Searching for geoscience news...');
 
     try {
-      const result = await searchGeoscienceNews({
+      const result = await api.ai.searchGeoscienceNews({
         keywords,
         dateRange: {}, // Empty object for no date restrictions
         sources: [],   // Empty array for no source restrictions

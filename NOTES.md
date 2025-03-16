@@ -30,3 +30,9 @@
 1. Re-enable type checking by removing the `typescript.ignoreBuildErrors` and `eslint.ignoreDuringBuilds` settings in `next.config.js` once the type errors are fixed.
 2. Properly implement the scheduled functions.
 3. Fix the type errors in the newsletter functions by using the correct type definitions. 
+
+
+
+
+
+9df7cbe6-3448-453e-a325-b2c4e3e49a1a

@@ -13,6 +13,24 @@ const rawProcessArticleContent = httpsCallable(functions, 'processArticleContent
 const rawSearchGeoscienceNews = httpsCallable(functions, 'searchGeoscienceNews');
 
 /**
+ * Safe stringify to prevent circular reference errors
+ * @param {any} obj - Object to stringify
+ * @returns {string} - Safe JSON string
+ */
+function safeStringify(obj) {
+    const seen = new WeakSet();
+    return JSON.stringify(obj, (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+            if (seen.has(value)) {
+                return '[Circular Reference]';
+            }
+            seen.add(value);
+        }
+        return value;
+    });
+}
+
+/**
  * Process article content using AI to generate summaries and categorize content
  * 
  * @param {Object} data - Article data to process
@@ -23,6 +41,8 @@ const rawSearchGeoscienceNews = httpsCallable(functions, 'searchGeoscienceNews')
  */
 export async function processArticleContent(data) {
     try {
+        // Only log safe versions of objects
+        console.log('Calling processArticleContent with data:', JSON.stringify(data));
         const result = await rawProcessArticleContent(data);
         return result.data;
     } catch (error) {
@@ -44,11 +64,34 @@ export async function processArticleContent(data) {
  */
 export async function searchGeoscienceNews(params) {
     try {
-        const result = await rawSearchGeoscienceNews(params);
-        return result.data;
+        // Make sure keywords is a string and not empty
+        if (!params || typeof params.keywords !== 'string' || !params.keywords.trim()) {
+            throw new Error('Keywords are required for search');
+        }
+
+        // Create a clean parameters object with only the necessary fields
+        const cleanParams = {
+            keywords: params.keywords.trim(),
+            dateRange: params.dateRange || { start: null, end: null },
+            sources: params.sources || [],
+            page: params.page || 1,
+            limit: params.limit || 10
+        };
+
+        console.log('Clean params for search:', JSON.stringify(cleanParams));
+
+        // Call Firebase function with clean parameters
+        const result = await rawSearchGeoscienceNews(cleanParams);
+        return {
+            success: true,
+            data: result.data
+        };
     } catch (error) {
-        console.error('Error searching geoscience news:', error);
-        throw error;
+        console.error('Error searching geoscience news:', error.message || error);
+        return {
+            success: false,
+            error: error.message || 'Unknown error occurred'
+        };
     }
 }
 
@@ -60,13 +103,15 @@ export async function searchGeoscienceNews(params) {
  * @returns {Promise<Object|null>} - Processed article data or null if not found
  */
 export async function checkProcessedArticle(url) {
-    // This would typically call a Firebase function or directly query Firestore
-    // For simplicity, we're making a direct call to the API for now
+    // Mock implementation for development
+    if (process.env.NODE_ENV === 'development') {
+        return null; // Always process in development
+    }
+
     try {
-        // URL hash approach would be implemented server-side
-        const encodedUrl = encodeURIComponent(url);
-        // In a real implementation, you'd have a Firebase Function to check this
-        return null; // Placeholder
+        // In a real implementation, this would query Firestore directly
+        // or call a Firebase function
+        return null;
     } catch (error) {
         console.error('Error checking processed article:', error);
         return null;

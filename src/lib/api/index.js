@@ -1,6 +1,10 @@
-// Export AI functions
-export {
-    processArticleContent,
-    searchGeoscienceNews,
-    checkProcessedArticle
-} from './ai'; 
+// Export API modules
+import * as ai from './ai';
+import * as admin from './admin';
+import * as status from './status';
+
+export default {
+    ai,
+    admin,
+    status
+}; 

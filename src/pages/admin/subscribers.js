@@ -1,442 +1,212 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/admin/AdminLayout';
-import { useRouter } from 'next/router';
-import { FiUsers, FiUserPlus, FiMail, FiCheck, FiAlertTriangle, FiXCircle, FiDownload, FiUpload } from 'react-icons/fi';
-import { verifyAdminTokenLocally } from '../../lib/auth';
+import { FiUsers, FiUserPlus, FiUserMinus, FiEdit, FiTrash, FiDownload, FiUpload, FiSearch } from 'react-icons/fi';
 
-export default function AdminSubscribers() {
-    const router = useRouter();
-    const [isLoading, setIsLoading] = useState(true);
+export default function SubscribersPage() {
     const [subscribers, setSubscribers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const [showAddForm, setShowAddForm] = useState(false);
     const [newSubscriber, setNewSubscriber] = useState({ email: '', name: '' });
-    const [formError, setFormError] = useState(null);
-    const [formSuccess, setFormSuccess] = useState(null);
-    const [selectedSubscribers, setSelectedSubscribers] = useState([]);
-    const [isExporting, setIsExporting] = useState(false);
-    const [importFile, setImportFile] = useState(null);
-    const [isImporting, setIsImporting] = useState(false);
 
+    // Mock data for development
     useEffect(() => {
-        // Check if user is logged in
-        const adminToken = localStorage.getItem('geobit_admin_token');
-
-        if (!adminToken) {
-            router.push('/admin');
-            return;
-        }
-
-        const checkAdmin = async () => {
+        const fetchSubscribers = async () => {
             try {
-                const isAdmin = await verifyAdminTokenLocally(adminToken);
-                if (!isAdmin) {
-                    localStorage.removeItem('geobit_admin_token');
-                    router.push('/admin');
-                    return;
-                }
+                setLoading(true);
 
-                fetchSubscribers();
+                // In a real implementation, this would call a Firebase function
+                // Mock data for development
+                const mockSubscribers = [
+                    { id: '1', email: 'john.doe@example.com', name: 'John Doe', status: 'active', joinDate: '2023-02-15', lastNewsletter: '2023-05-01' },
+                    { id: '2', email: 'jane.smith@example.com', name: 'Jane Smith', status: 'active', joinDate: '2023-03-10', lastNewsletter: '2023-05-01' },
+                    { id: '3', email: 'alex.brown@example.com', name: 'Alex Brown', status: 'inactive', joinDate: '2023-01-20', lastNewsletter: '2023-04-15' },
+                    { id: '4', email: 'sarah.johnson@example.com', name: 'Sarah Johnson', status: 'active', joinDate: '2023-04-05', lastNewsletter: '2023-05-01' },
+                    { id: '5', email: 'michael.wilson@example.com', name: 'Michael Wilson', status: 'active', joinDate: '2023-02-28', lastNewsletter: '2023-05-01' },
+                ];
+
+                // Simulate API delay
+                setTimeout(() => {
+                    setSubscribers(mockSubscribers);
+                    setLoading(false);
+                }, 1000);
             } catch (err) {
-                console.error("Error verifying admin:", err);
-                setError("Error verifying admin status");
-                setIsLoading(false);
+                console.error('Error fetching subscribers:', err);
+                setError('Failed to load subscribers. Please try again later.');
+                setLoading(false);
             }
         };
 
-        checkAdmin();
-    }, [router]);
+        fetchSubscribers();
+    }, []);
 
-    const fetchSubscribers = async () => {
-        setIsLoading(true);
-        setError(null);
+    // Filter subscribers based on search term
+    const filteredSubscribers = subscribers.filter(subscriber =>
+        subscriber.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        subscriber.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-        try {
-            // In development, use mock data
-            if (process.env.NODE_ENV === 'development') {
-                await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-
-                const mockSubscribers = [
-                    { id: '1', email: 'john.doe@example.com', name: 'John Doe', status: 'active', subscribedDate: '2023-01-15', lastActivity: '2023-05-10' },
-                    { id: '2', email: 'jane.smith@example.com', name: 'Jane Smith', status: 'active', subscribedDate: '2023-02-20', lastActivity: '2023-04-30' },
-                    { id: '3', email: 'michael.brown@example.com', name: 'Michael Brown', status: 'inactive', subscribedDate: '2023-01-05', lastActivity: '2023-02-15' },
-                    { id: '4', email: 'emily.jones@example.com', name: 'Emily Jones', status: 'active', subscribedDate: '2023-03-10', lastActivity: '2023-05-05' },
-                    { id: '5', email: 'robert.wilson@example.com', name: 'Robert Wilson', status: 'active', subscribedDate: '2023-02-28', lastActivity: '2023-04-28' },
-                    { id: '6', email: 'sophia.garcia@example.com', name: 'Sophia Garcia', status: 'active', subscribedDate: '2023-03-15', lastActivity: '2023-05-01' },
-                    { id: '7', email: 'david.martinez@example.com', name: 'David Martinez', status: 'inactive', subscribedDate: '2023-01-20', lastActivity: '2023-02-20' },
-                    { id: '8', email: 'olivia.miller@example.com', name: 'Olivia Miller', status: 'active', subscribedDate: '2023-02-10', lastActivity: '2023-04-15' },
-                    { id: '9', email: 'james.taylor@example.com', name: 'James Taylor', status: 'active', subscribedDate: '2023-03-05', lastActivity: '2023-05-08' },
-                    { id: '10', email: 'emma.anderson@example.com', name: 'Emma Anderson', status: 'active', subscribedDate: '2023-02-15', lastActivity: '2023-04-25' }
-                ];
-
-                setSubscribers(mockSubscribers);
-            } else {
-                // In production, fetch real data
-                const response = await fetch('/api/admin/subscribers', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('geobit_admin_token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch subscribers');
-                }
-
-                const data = await response.json();
-                setSubscribers(data.subscribers);
-            }
-        } catch (err) {
-            console.error('Error fetching subscribers:', err);
-            setError(err.message || 'Failed to load subscribers data');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleAddSubscriber = async (e) => {
+    const handleAddSubscriber = (e) => {
         e.preventDefault();
-        setFormError(null);
-        setFormSuccess(null);
 
-        // Simple validation
-        if (!newSubscriber.email) {
-            setFormError('Email is required');
+        // Validate input
+        if (!newSubscriber.email || !newSubscriber.email.includes('@')) {
+            alert('Please enter a valid email address');
             return;
         }
 
-        try {
-            // Mock API call in development
-            if (process.env.NODE_ENV === 'development') {
-                await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+        // Add subscriber to the list
+        const newId = (Math.max(0, ...subscribers.map(s => parseInt(s.id))) + 1).toString();
+        const today = new Date().toISOString().split('T')[0];
 
-                // Add subscriber to the local state
-                const newId = (subscribers.length + 1).toString();
-                const now = new Date().toISOString().split('T')[0];
-
-                const addedSubscriber = {
-                    id: newId,
-                    email: newSubscriber.email,
-                    name: newSubscriber.name || '',
-                    status: 'active',
-                    subscribedDate: now,
-                    lastActivity: now
-                };
-
-                setSubscribers([...subscribers, addedSubscriber]);
-                setFormSuccess(`Subscriber ${newSubscriber.email} added successfully!`);
-                setNewSubscriber({ email: '', name: '' });
-                setShowAddForm(false);
-            } else {
-                // In production, make real API call
-                const response = await fetch('/api/admin/subscribers', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('geobit_admin_token')}`
-                    },
-                    body: JSON.stringify(newSubscriber)
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to add subscriber');
-                }
-
-                const data = await response.json();
-                setSubscribers([...subscribers, data.subscriber]);
-                setFormSuccess(`Subscriber ${newSubscriber.email} added successfully!`);
-                setNewSubscriber({ email: '', name: '' });
-                setShowAddForm(false);
+        setSubscribers([
+            ...subscribers,
+            {
+                id: newId,
+                email: newSubscriber.email,
+                name: newSubscriber.name || 'Unnamed Subscriber',
+                status: 'active',
+                joinDate: today,
+                lastNewsletter: 'None'
             }
-        } catch (err) {
-            console.error('Error adding subscriber:', err);
-            setFormError(err.message || 'Failed to add subscriber');
+        ]);
+
+        // Reset form
+        setNewSubscriber({ email: '', name: '' });
+        setShowAddForm(false);
+    };
+
+    const handleDeleteSubscriber = (id) => {
+        if (window.confirm('Are you sure you want to delete this subscriber?')) {
+            setSubscribers(subscribers.filter(s => s.id !== id));
         }
     };
 
-    const handleDeleteSubscriber = async (id) => {
-        if (!confirm('Are you sure you want to delete this subscriber?')) {
-            return;
-        }
-
-        try {
-            // Mock API call in development
-            if (process.env.NODE_ENV === 'development') {
-                await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-
-                // Remove from local state
-                setSubscribers(subscribers.filter(sub => sub.id !== id));
-            } else {
-                // In production, make real API call
-                const response = await fetch(`/api/admin/subscribers/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('geobit_admin_token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to delete subscriber');
-                }
-
-                setSubscribers(subscribers.filter(sub => sub.id !== id));
-            }
-        } catch (err) {
-            console.error('Error deleting subscriber:', err);
-            setError(err.message || 'Failed to delete subscriber');
-        }
+    const handleStatusToggle = (id) => {
+        setSubscribers(subscribers.map(s =>
+            s.id === id
+                ? { ...s, status: s.status === 'active' ? 'inactive' : 'active' }
+                : s
+        ));
     };
-
-    const handleExportSubscribers = async () => {
-        setIsExporting(true);
-
-        try {
-            const selectedData = selectedSubscribers.length > 0
-                ? subscribers.filter(sub => selectedSubscribers.includes(sub.id))
-                : subscribers;
-
-            const csvContent = [
-                ['ID', 'Email', 'Name', 'Status', 'Subscribed Date', 'Last Activity'],
-                ...selectedData.map(sub => [
-                    sub.id,
-                    sub.email,
-                    sub.name,
-                    sub.status,
-                    sub.subscribedDate,
-                    sub.lastActivity
-                ])
-            ]
-                .map(row => row.join(','))
-                .join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('hidden', '');
-            a.setAttribute('href', url);
-            a.setAttribute('download', 'subscribers.csv');
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } catch (err) {
-            console.error('Error exporting subscribers:', err);
-            setError(err.message || 'Failed to export subscribers');
-        } finally {
-            setIsExporting(false);
-        }
-    };
-
-    const handleImportSubscribers = async (e) => {
-        e.preventDefault();
-        setFormError(null);
-        setFormSuccess(null);
-
-        if (!importFile) {
-            setFormError('Please select a CSV file to import');
-            return;
-        }
-
-        setIsImporting(true);
-
-        try {
-            // For development, simulate import
-            if (process.env.NODE_ENV === 'development') {
-                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-
-                setFormSuccess('Successfully imported 5 subscribers');
-                setImportFile(null);
-            } else {
-                // In production, make real API call
-                const formData = new FormData();
-                formData.append('file', importFile);
-
-                const response = await fetch('/api/admin/subscribers/import', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('geobit_admin_token')}`
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.message || 'Failed to import subscribers');
-                }
-
-                const data = await response.json();
-                setFormSuccess(`Successfully imported ${data.imported} subscribers`);
-                setImportFile(null);
-                fetchSubscribers(); // Refresh the list
-            }
-        } catch (err) {
-            console.error('Error importing subscribers:', err);
-            setFormError(err.message || 'Failed to import subscribers');
-        } finally {
-            setIsImporting(false);
-        }
-    };
-
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    if (isLoading) {
-        return (
-            <AdminLayout>
-                <div className="flex justify-center items-center h-full">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                </div>
-            </AdminLayout>
-        );
-    }
-
-    if (error) {
-        return (
-            <AdminLayout>
-                <div className="text-light bg-dark-light p-6 rounded-lg">
-                    <h2 className="text-xl font-bold mb-4">Error</h2>
-                    <p>{error}</p>
-                </div>
-            </AdminLayout>
-        );
-    }
 
     return (
-        <AdminLayout>
+        <AdminLayout title="Subscriber Management">
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-light">Subscribers</h1>
-                    <div className="flex items-center space-x-2">
+                {/* Header with stats */}
+                <div className="flex flex-wrap gap-4 mb-6">
+                    <div className="bg-dark-lighter p-4 rounded-lg shadow flex-1 min-w-[200px] border border-dark-border">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-light-muted text-sm">Total Subscribers</p>
+                                <p className="text-2xl font-bold text-light">{subscribers.length}</p>
+                            </div>
+                            <FiUsers className="text-primary text-3xl" />
+                        </div>
+                    </div>
+
+                    <div className="bg-dark-lighter p-4 rounded-lg shadow flex-1 min-w-[200px] border border-dark-border">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-light-muted text-sm">Active Subscribers</p>
+                                <p className="text-2xl font-bold text-light">
+                                    {subscribers.filter(s => s.status === 'active').length}
+                                </p>
+                            </div>
+                            <FiUserPlus className="text-green-500 text-3xl" />
+                        </div>
+                    </div>
+
+                    <div className="bg-dark-lighter p-4 rounded-lg shadow flex-1 min-w-[200px] border border-dark-border">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-light-muted text-sm">Inactive Subscribers</p>
+                                <p className="text-2xl font-bold text-light">
+                                    {subscribers.filter(s => s.status === 'inactive').length}
+                                </p>
+                            </div>
+                            <FiUserMinus className="text-red-500 text-3xl" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tools */}
+                <div className="flex flex-wrap gap-4 mb-6">
+                    <div className="flex-1">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search subscribers..."
+                                className="w-full p-3 pl-10 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <FiSearch className="absolute left-3 top-3.5 text-light-muted" />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2">
                         <button
+                            className="p-2.5 bg-primary hover:bg-primary/80 rounded text-dark font-medium transition-colors flex items-center"
                             onClick={() => setShowAddForm(true)}
-                            className="bg-primary hover:bg-primary/80 text-dark font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-primary transition-colors flex items-center"
                         >
-                            <FiUserPlus className="mr-2" />
+                            <FiUserPlus className="mr-1" />
                             Add Subscriber
                         </button>
 
-                        <button
-                            onClick={handleExportSubscribers}
-                            disabled={isExporting}
-                            className="bg-dark-light hover:bg-dark-light/80 text-light font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-primary transition-colors flex items-center disabled:opacity-50"
-                        >
-                            {isExporting ? (
-                                <span className="flex items-center">
-                                    <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-primary rounded-full"></span>
-                                    Exporting...
-                                </span>
-                            ) : (
-                                <span className="flex items-center">
-                                    <FiDownload className="mr-2" />
-                                    Export
-                                </span>
-                            )}
+                        <button className="p-2.5 bg-dark-border hover:bg-dark-border/80 rounded text-light font-medium transition-colors flex items-center">
+                            <FiUpload className="mr-1" />
+                            Import
+                        </button>
+
+                        <button className="p-2.5 bg-dark-border hover:bg-dark-border/80 rounded text-light font-medium transition-colors flex items-center">
+                            <FiDownload className="mr-1" />
+                            Export
                         </button>
                     </div>
                 </div>
 
-                {/* Success Message */}
-                {formSuccess && (
-                    <div className="bg-green-900/20 text-green-500 p-4 rounded-lg flex items-start">
-                        <FiCheck className="mr-2 mt-1 flex-shrink-0" />
-                        <p>{formSuccess}</p>
-                    </div>
-                )}
-
-                {/* Import Section */}
-                <div className="bg-dark-lighter border border-dark-border rounded-lg p-4 shadow-lg">
-                    <h2 className="text-lg font-bold text-light mb-3">Import Subscribers</h2>
-                    <form onSubmit={handleImportSubscribers} className="flex flex-col md:flex-row items-end gap-4">
-                        <div className="flex-1">
-                            <label className="block text-light mb-1 font-medium">CSV File</label>
-                            <input
-                                type="file"
-                                accept=".csv"
-                                onChange={(e) => setImportFile(e.target.files[0])}
-                                className="w-full p-2 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                            {formError && (
-                                <p className="text-red-500 text-sm mt-1">{formError}</p>
-                            )}
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={isImporting || !importFile}
-                            className="bg-dark-border hover:bg-dark-border/80 text-light font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-primary transition-colors flex items-center disabled:opacity-50"
-                        >
-                            {isImporting ? (
-                                <span className="flex items-center">
-                                    <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-primary rounded-full"></span>
-                                    Importing...
-                                </span>
-                            ) : (
-                                <span className="flex items-center">
-                                    <FiUpload className="mr-2" />
-                                    Import
-                                </span>
-                            )}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Add Subscriber Form */}
+                {/* Add subscriber form */}
                 {showAddForm && (
-                    <div className="bg-dark-lighter border border-dark-border rounded-lg p-6 shadow-lg">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-bold text-light">Add New Subscriber</h2>
-                            <button
-                                onClick={() => setShowAddForm(false)}
-                                className="text-light-muted hover:text-light"
-                            >
-                                <FiXCircle className="h-5 w-5" />
-                            </button>
-                        </div>
-
+                    <div className="bg-dark-lighter border border-dark-border rounded-lg p-4 mb-6 shadow-lg">
+                        <h3 className="text-lg font-semibold text-light mb-4">Add New Subscriber</h3>
                         <form onSubmit={handleAddSubscriber} className="space-y-4">
                             <div>
-                                <label htmlFor="email" className="block text-light mb-1 font-medium">
-                                    Email *
-                                </label>
+                                <label htmlFor="email" className="block text-sm font-medium text-light-muted mb-1">Email Address</label>
                                 <input
                                     id="email"
                                     type="email"
                                     required
-                                    className="w-full p-2 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
-                                    placeholder="subscriber@example.com"
                                     value={newSubscriber.email}
                                     onChange={(e) => setNewSubscriber({ ...newSubscriber, email: e.target.value })}
+                                    className="w-full p-2.5 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="name" className="block text-light mb-1 font-medium">
-                                    Name (optional)
-                                </label>
+                                <label htmlFor="name" className="block text-sm font-medium text-light-muted mb-1">Name (Optional)</label>
                                 <input
                                     id="name"
                                     type="text"
-                                    className="w-full p-2 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
-                                    placeholder="Subscriber's name"
                                     value={newSubscriber.name}
                                     onChange={(e) => setNewSubscriber({ ...newSubscriber, name: e.target.value })}
+                                    className="w-full p-2.5 rounded bg-dark border border-dark-border text-light focus:outline-none focus:ring-2 focus:ring-primary"
                                 />
                             </div>
 
-                            {formError && (
-                                <div className="text-red-500 text-sm">{formError}</div>
-                            )}
-
-                            <div className="flex justify-end">
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddForm(false)}
+                                    className="px-4 py-2 bg-dark-border hover:bg-dark-border/80 rounded text-light transition-colors"
+                                >
+                                    Cancel
+                                </button>
                                 <button
                                     type="submit"
-                                    className="bg-primary hover:bg-primary/80 text-dark font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-primary transition-colors flex items-center"
+                                    className="px-4 py-2 bg-primary hover:bg-primary/80 rounded text-dark font-medium transition-colors"
                                 >
-                                    <FiUserPlus className="mr-2" />
                                     Add Subscriber
                                 </button>
                             </div>
@@ -444,108 +214,106 @@ export default function AdminSubscribers() {
                     </div>
                 )}
 
-                {/* Subscribers Table */}
-                <div className="bg-dark-lighter border border-dark-border rounded-lg overflow-hidden shadow-lg">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-dark-border">
-                            <thead className="bg-dark-light">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
-                                        <input
-                                            type="checkbox"
-                                            className="h-4 w-4 accent-primary rounded border-dark-border bg-dark"
-                                            onChange={(e) => {
-                                                if (e.target.checked) {
-                                                    setSelectedSubscribers(subscribers.map(s => s.id));
-                                                } else {
-                                                    setSelectedSubscribers([]);
-                                                }
-                                            }}
-                                            checked={selectedSubscribers.length === subscribers.length && subscribers.length > 0}
-                                        />
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
-                                        Email
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
-                                        Name
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
-                                        Subscribed Date
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
-                                        Last Activity
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-light-muted uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-dark-border">
-                                {subscribers.length === 0 ? (
+                {/* Subscribers table */}
+                {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                ) : error ? (
+                    <div className="bg-red-900/20 border border-red-900/30 text-red-500 p-4 rounded-lg">
+                        {error}
+                    </div>
+                ) : (
+                    <div className="bg-dark-lighter border border-dark-border rounded-lg overflow-hidden shadow-lg">
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-dark-border">
+                                <thead className="bg-dark">
                                     <tr>
-                                        <td colSpan="7" className="px-6 py-4 text-center text-light-muted">
-                                            No subscribers found
-                                        </td>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
+                                            Email
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
+                                            Join Date
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-light-muted uppercase tracking-wider">
+                                            Last Newsletter
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-light-muted uppercase tracking-wider">
+                                            Actions
+                                        </th>
                                     </tr>
-                                ) : (
-                                    subscribers.map((subscriber) => (
-                                        <tr key={subscriber.id} className="hover:bg-dark-light/50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <input
-                                                    type="checkbox"
-                                                    className="h-4 w-4 accent-primary rounded border-dark-border bg-dark"
-                                                    checked={selectedSubscribers.includes(subscriber.id)}
-                                                    onChange={(e) => {
-                                                        if (e.target.checked) {
-                                                            setSelectedSubscribers([...selectedSubscribers, subscriber.id]);
-                                                        } else {
-                                                            setSelectedSubscribers(selectedSubscribers.filter(id => id !== subscriber.id));
-                                                        }
-                                                    }}
-                                                />
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <FiMail className="text-light-muted mr-2" />
-                                                    <span className="text-light">{subscriber.email}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-light">
-                                                {subscriber.name || <span className="text-light-muted">Not provided</span>}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${subscriber.status === 'active'
-                                                    ? 'bg-green-900/20 text-green-500'
-                                                    : 'bg-red-900/20 text-red-500'
-                                                    }`}>
-                                                    {subscriber.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-light-muted">
-                                                {formatDate(subscriber.subscribedDate)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-light-muted">
-                                                {formatDate(subscriber.lastActivity)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button
-                                                    onClick={() => handleDeleteSubscriber(subscriber.id)}
-                                                    className="text-red-500 hover:text-red-400"
-                                                >
-                                                    Delete
-                                                </button>
+                                </thead>
+                                <tbody className="divide-y divide-dark-border">
+                                    {filteredSubscribers.length > 0 ? (
+                                        filteredSubscribers.map((subscriber) => (
+                                            <tr key={subscriber.id} className="hover:bg-dark-card transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-light">
+                                                    {subscriber.email}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-light">
+                                                    {subscriber.name}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${subscriber.status === 'active'
+                                                            ? 'bg-green-900/20 text-green-500'
+                                                            : 'bg-red-900/20 text-red-500'
+                                                        }`}>
+                                                        {subscriber.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-light-muted">
+                                                    {subscriber.joinDate}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-light-muted">
+                                                    {subscriber.lastNewsletter}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex justify-end space-x-2">
+                                                        <button
+                                                            onClick={() => handleStatusToggle(subscriber.id)}
+                                                            className={`p-1.5 rounded ${subscriber.status === 'active'
+                                                                    ? 'text-green-500 hover:bg-green-900/20'
+                                                                    : 'text-red-500 hover:bg-red-900/20'
+                                                                }`}
+                                                            title={subscriber.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                        >
+                                                            {subscriber.status === 'active' ? <FiUserMinus /> : <FiUserPlus />}
+                                                        </button>
+                                                        <button
+                                                            className="p-1.5 text-blue-500 hover:bg-blue-900/20 rounded"
+                                                            title="Edit"
+                                                        >
+                                                            <FiEdit />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteSubscriber(subscriber.id)}
+                                                            className="p-1.5 text-red-500 hover:bg-red-900/20 rounded"
+                                                            title="Delete"
+                                                        >
+                                                            <FiTrash />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="px-6 py-4 text-center text-light">
+                                                No subscribers found.
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </AdminLayout>
     );

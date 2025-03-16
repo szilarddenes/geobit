@@ -40,38 +40,31 @@ export default function ProcessContent() {
                 throw new Error('All fields are required');
             }
 
+            console.log('Processing content with params:', {
+                url: formData.url,
+                title: formData.title,
+                contentLength: formData.content.length
+            });
+
             // Process content with AI
-            const result = await processArticleContent({
+            const response = await processArticleContent({
                 url: formData.url,
                 title: formData.title,
                 content: formData.content
             });
 
-            setResult(result);
-            // Clear form on success
-            setFormData({
-                url: '',
-                title: '',
-                content: ''
-            });
-        } catch (err) {
-            console.error('Error processing content:', err);
-            setError(err.message || 'Error processing content');
+            console.log('Processing result:', response);
 
-            // In development mode, provide sample response
-            if (process.env.NODE_ENV === 'development') {
-                setTimeout(() => {
-                    setResult({
-                        summary: 'This is a sample AI-generated summary of the article content that highlights the key points about geoscience topics.',
-                        categories: ['Geology', 'Mining', 'Exploration'],
-                        keywords: ['geothermal', 'minerals', 'survey', 'lithium', 'resources'],
-                        sentiment: 'positive',
-                        relevanceScore: 0.85,
-                        readabilityScore: 'medium',
-                        aiInsights: 'This article contains valuable information for the geoscience community, particularly those interested in mineral exploration. The findings could impact resource allocation strategies.'
-                    });
-                }, 2000);
+            if (response.success === false) {
+                throw new Error(response.error || 'Error processing content');
             }
+
+            setResult(response);
+            toast.success('Content processed successfully!');
+        } catch (err) {
+            console.error('Content processing error:', err);
+            setError(err.message || 'An error occurred while processing content');
+            toast.error(err.message || 'An error occurred while processing content');
         } finally {
             setLoading(false);
         }

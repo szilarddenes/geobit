@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { FiSearch, FiCalendar, FiLink, FiExternalLink, FiCpu, FiAlertTriangle } from 'react-icons/fi';
-import { searchGeoscienceNews } from '../../../lib/api/ai';
+import { BiHash } from 'react-icons/bi';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
+import api from '../../../lib/api';
 
 export default function SearchNews() {
   const [searchParams, setSearchParams] = useState({
@@ -14,6 +17,7 @@ export default function SearchNews() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   const sourceOptions = [
     { value: 'scientific_journals', label: 'Scientific Journals' },
@@ -33,71 +37,68 @@ export default function SearchNews() {
     });
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  const searchNewContent = async (e) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // Validate input
-      if (!searchParams.keywords.trim()) {
-        throw new Error('Keywords are required');
+      if (!searchParams.keywords?.trim()) {
+        throw new Error('Keywords are required for search');
       }
 
-      const results = await searchGeoscienceNews({
-        keywords: searchParams.keywords,
-        dateRange: searchParams.dateRange,
-        sources: searchParams.sources.length > 0 ? searchParams.sources : undefined,
-        page: searchParams.page,
-        limit: searchParams.limit
-      });
+      // Create date range object
+      let dateRangeObj = {};
+      if (searchParams.dateRange) {
+        const now = new Date();
+        let startDate = new Date();
 
-      setResults(results);
+        if (searchParams.dateRange === '1d') {
+          startDate.setDate(now.getDate() - 1);
+        } else if (searchParams.dateRange === '7d') {
+          startDate.setDate(now.getDate() - 7);
+        } else if (searchParams.dateRange === '30d') {
+          startDate.setDate(now.getDate() - 30);
+        } else if (searchParams.dateRange === '90d') {
+          startDate.setDate(now.getDate() - 90);
+        }
+
+        dateRangeObj = {
+          startDate: startDate.toISOString(),
+          endDate: now.toISOString()
+        };
+      }
+
+      // Clean params
+      const cleanParams = {
+        keywords: searchParams.keywords.trim(),
+        dateRange: dateRangeObj,
+        sources: searchParams.sources?.length ? searchParams.sources : [],
+        page: searchParams.page || 1,
+        limit: 10
+      };
+
+      console.log('Calling searchGeoscienceNews with params:', cleanParams);
+
+      const response = await api.ai.searchGeoscienceNews(cleanParams);
+
+      if (response?.success) {
+        // Ensure we have a results property even if response doesn't include one
+        const resultsData = {
+          ...response.data,
+          results: response.data?.results || []
+        };
+        setResults(resultsData);
+      } else {
+        throw new Error(response?.error || 'Failed to search for news');
+      }
     } catch (err) {
-      console.error('Error searching geoscience news:', err);
-      setError(err.message || 'Error searching for news');
-      
-      // In development mode, provide sample response
-      if (process.env.NODE_ENV === 'development') {
-        setTimeout(() => {
-          setResults({
-            items: [
-              {
-                title: 'New Lithium Deposits Discovered in Nevada Basin',
-                url: 'https://example.com/lithium-nevada',
-                source: 'Geology Today',
-                date: '2023-05-15',
-                snippet: 'Researchers have discovered significant lithium deposits in Nevada\'s Clayton Valley, potentially increasing US domestic supply of this critical mineral used in batteries and clean energy technology.',
-                relevance: 0.95
-              },
-              {
-                title: 'Advanced Seismic Techniques Reveal Hidden Fault Lines',
-                url: 'https://example.com/seismic-fault-lines',
-                source: 'Earthquake Research Journal',
-                date: '2023-05-10',
-                snippet: 'Using novel seismic imaging techniques, scientists have identified previously unknown fault lines beneath major California urban centers, improving earthquake risk assessment models.',
-                relevance: 0.88
-              },
-              {
-                title: 'Climate Change Impacts on Groundwater Systems',
-                url: 'https://example.com/climate-groundwater',
-                source: 'Hydrology Reports',
-                date: '2023-05-05',
-                snippet: 'A comprehensive study shows how rising temperatures and changing precipitation patterns are affecting groundwater recharge rates across western North America.',
-                relevance: 0.82
-              }
-            ],
-            totalResults: 24,
-            page: 1,
-            totalPages: 3,
-            searchMetadata: {
-              query: searchParams.keywords,
-              processingTime: '1.24 seconds',
-              sources: searchParams.sources.length > 0 ? searchParams.sources : 'all sources',
-              dateRange: searchParams.dateRange
-            }
-          });
-        }, 2000);
+      console.error('Search error:', err);
+      // Handle the circular structure error specifically
+      if (err.message && err.message.includes('Converting circular structure to JSON')) {
+        setError('An error occurred with the search request. Please try different keywords or contact support.');
+      } else {
+        setError(err.message || 'An error occurred while searching');
       }
     } finally {
       setLoading(false);
@@ -106,26 +107,54 @@ export default function SearchNews() {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   };
 
   const handleNextPage = () => {
-    if (results && results.page < results.totalPages) {
-      setSearchParams(prev => ({ ...prev, page: prev.page + 1 }));
-      handleSearch({ preventDefault: () => {} });
-    }
+    setSearchParams(prev => ({
+      ...prev,
+      page: (prev.page || 1) + 1
+    }));
   };
 
   const handlePrevPage = () => {
-    if (results && results.page > 1) {
-      setSearchParams(prev => ({ ...prev, page: prev.page - 1 }));
-      handleSearch({ preventDefault: () => {} });
-    }
+    setSearchParams(prev => ({
+      ...prev,
+      page: Math.max((prev.page || 1) - 1, 1)
+    }));
   };
+
+  useEffect(() => {
+    // Only search when parameters other than keywords change
+    // Or if we have keywords and the page changes
+    const shouldSearch = searchParams.keywords.trim() && (
+      searchParams.page > 1 ||
+      searchParams.dateRange !== '7d' ||
+      searchParams.sources.length > 0
+    );
+
+    if (shouldSearch) {
+      searchNewContent();
+    }
+  }, [searchParams]);
+
+  // Add a debounced search for when keywords change
+  useEffect(() => {
+    // Don't search if the keywords are empty
+    if (!searchParams.keywords.trim()) return;
+
+    // Set a timeout to avoid searching on every keystroke
+    const timer = setTimeout(() => {
+      searchNewContent();
+    }, 1000); // Wait 1 second after typing stops
+
+    // Clear the timeout if the component unmounts or keywords change again
+    return () => clearTimeout(timer);
+  }, [searchParams.keywords]);
 
   return (
     <AdminLayout>
@@ -139,7 +168,7 @@ export default function SearchNews() {
         </div>
 
         <div className="bg-dark-lighter border border-dark-border rounded-lg p-6 shadow-lg">
-          <form onSubmit={handleSearch} className="space-y-4">
+          <form onSubmit={searchNewContent} className="space-y-4">
             <div>
               <label htmlFor="keywords" className="block text-light mb-1 font-medium">
                 Search Keywords
@@ -169,11 +198,10 @@ export default function SearchNews() {
                     <button
                       key={option.value}
                       type="button"
-                      className={`p-2 rounded text-center text-sm ${
-                        searchParams.dateRange === option.value
-                          ? 'bg-primary text-dark font-bold'
-                          : 'bg-dark text-light-muted hover:bg-dark-light'
-                      }`}
+                      className={`p-2 rounded text-center text-sm ${searchParams.dateRange === option.value
+                        ? 'bg-primary text-dark font-bold'
+                        : 'bg-dark text-light-muted hover:bg-dark-light'
+                        }`}
                       onClick={() => setSearchParams({ ...searchParams, dateRange: option.value })}
                     >
                       {option.label}
@@ -191,11 +219,10 @@ export default function SearchNews() {
                     <button
                       key={option.value}
                       type="button"
-                      className={`px-3 py-1 rounded text-sm ${
-                        searchParams.sources.includes(option.value)
-                          ? 'bg-primary text-dark font-bold'
-                          : 'bg-dark text-light-muted hover:bg-dark-light'
-                      }`}
+                      className={`px-3 py-1 rounded text-sm ${searchParams.sources.includes(option.value)
+                        ? 'bg-primary text-dark font-bold'
+                        : 'bg-dark text-light-muted hover:bg-dark-light'
+                        }`}
                       onClick={() => handleSourceToggle(option.value)}
                     >
                       {option.label}
@@ -238,15 +265,15 @@ export default function SearchNews() {
               <div className="mb-4 p-3 bg-dark rounded-lg text-light-muted text-sm">
                 Found {results.totalResults} results for "{results.searchMetadata?.query}" in {results.searchMetadata?.processingTime || '~1 second'}.
                 {results.searchMetadata?.sources && (
-                  <span> Sources: {Array.isArray(results.searchMetadata?.sources) 
-                    ? results.searchMetadata?.sources.join(', ') 
+                  <span> Sources: {Array.isArray(results.searchMetadata?.sources)
+                    ? results.searchMetadata?.sources.join(', ')
                     : results.searchMetadata?.sources}
                   </span>
                 )}
               </div>
 
               <div className="space-y-4">
-                {results.items?.map((item, index) => (
+                {results.results?.map((item, index) => (
                   <div key={index} className="p-4 bg-dark-light rounded-lg hover:bg-dark-light/80 transition-colors">
                     <h3 className="text-light font-bold mb-2">
                       <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-primary">
@@ -254,7 +281,7 @@ export default function SearchNews() {
                         <FiExternalLink className="text-light-muted" />
                       </a>
                     </h3>
-                    
+
                     <div className="flex items-center text-sm text-light-muted mb-2">
                       <span className="flex items-center">
                         <FiCalendar className="mr-1" />
@@ -262,68 +289,99 @@ export default function SearchNews() {
                       </span>
                       <span className="mx-2">•</span>
                       <span>{item.source}</span>
-                      {item.relevance && (
+                      {item.category && (
                         <>
                           <span className="mx-2">•</span>
                           <span className="bg-dark-border px-2 py-0.5 rounded-full text-xs">
-                            {Math.round(item.relevance * 100)}% Relevant
+                            {item.category}
                           </span>
                         </>
                       )}
                     </div>
-                    
-                    <p className="text-light">{item.snippet}</p>
-                    
+
+                    <p className="text-light">{item.summary}</p>
+
                     <div className="mt-3 flex gap-2 flex-wrap">
                       <a
                         href={item.url}
-                        target="_blank" 
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm flex items-center text-primary hover:underline"
                       >
                         <FiLink className="mr-1" />
-                        View Source
+                        Visit Source
                       </a>
-                      
                       <button
-                        className="text-sm flex items-center text-primary hover:underline"
                         onClick={() => {
-                          const content = `Article URL: ${item.url}\nTitle: ${item.title}\nSource: ${item.source}\nDate: ${item.date}\nSnippet: ${item.snippet}`;
-                          navigator.clipboard.writeText(content);
-                          // Would normally use toast here
-                          alert('Article details copied to clipboard');
+                          setFormData({
+                            url: item.url,
+                            title: item.title,
+                            content: item.summary
+                          });
+                          router.push('/admin/content/process');
                         }}
+                        className="text-sm flex items-center text-primary hover:underline"
                       >
-                        Copy Details
+                        <FiCpu className="mr-1" />
+                        Process Full Article
                       </button>
                     </div>
                   </div>
                 ))}
+
+                {(!results.results || results.results.length === 0) && (
+                  <div className="p-6 bg-dark-light rounded-lg text-center">
+                    <p className="text-light-muted">No results found. Try different keywords or filters.</p>
+                  </div>
+                )}
               </div>
 
-              {results.totalPages > 1 && (
+              {results.pagination?.totalPages > 1 && (
                 <div className="mt-6 flex justify-between items-center">
                   <button
                     onClick={handlePrevPage}
-                    disabled={results.page === 1 || loading}
+                    disabled={results.pagination?.page === 1 || loading}
                     className="px-4 py-2 bg-dark-light text-light rounded disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
-                  
+
                   <span className="text-light-muted">
-                    Page {results.page} of {results.totalPages}
+                    Page {results.pagination?.page} of {results.pagination?.totalPages}
                   </span>
-                  
+
                   <button
                     onClick={handleNextPage}
-                    disabled={results.page === results.totalPages || loading}
+                    disabled={results.pagination?.page === results.pagination?.totalPages || loading}
                     className="px-4 py-2 bg-dark-light text-light rounded disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
                 </div>
               )}
+
+              <div className="mt-6 bg-dark-border/20 p-4 rounded-lg text-light-muted text-sm">
+                <div className="mb-2 flex items-center">
+                  <FiSearch className="mr-2" />
+                  <strong>Search Query:</strong>
+                  <span className="ml-2">{results.query || searchParams.keywords}</span>
+                </div>
+                {results.searchMetadata && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    <div>
+                      <strong>Processing Time:</strong> {results.searchMetadata.processingTime}
+                    </div>
+                    <div>
+                      <strong>Sources:</strong> {typeof results.searchMetadata.sources === 'string'
+                        ? results.searchMetadata.sources
+                        : (results.searchMetadata.sources?.join(', ') || 'All sources')}
+                    </div>
+                    <div>
+                      <strong>Date Range:</strong> {results.searchMetadata.dateRange || searchParams.dateRange}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

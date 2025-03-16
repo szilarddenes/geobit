@@ -75,22 +75,23 @@ export default function AdminDashboard() {
   const handleGenerateNewsletter = async () => {
     try {
       setNewsletterStatus({ status: 'generating' });
+      console.log('Generating newsletter...');
+
       const result = await generateNewsletterOnDemand();
+
+      console.log('Newsletter generation result:', result);
+
+      if (result.success === false) {
+        throw new Error(result.error || 'Error generating newsletter');
+      }
+
       setNewsletterStatus({ status: 'success', message: result.message });
     } catch (err) {
       console.error("Error generating newsletter:", err);
-
-      // In development mode, let's simulate a response
-      if (process.env.NODE_ENV === 'development') {
-        setTimeout(() => {
-          setNewsletterStatus({
-            status: 'success',
-            message: 'Newsletter generated successfully! It has been sent to 145 subscribers.'
-          });
-        }, 3000);
-      } else {
-        setNewsletterStatus({ status: 'error', message: err.message || "Unknown error generating newsletter" });
-      }
+      setNewsletterStatus({
+        status: 'error',
+        message: err.message || "Unknown error generating newsletter"
+      });
     }
   };
 

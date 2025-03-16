@@ -17,24 +17,37 @@ exports.processArticleContent = functions.onCall({
     minInstances: 0,
 }, async (data, context) => {
     try {
+        console.log("Received process content request:", data);
+
         // Verify authentication if needed
-        if (!context.auth) {
+        // Skip auth check in development mode
+        if (process.env.NODE_ENV !== 'development' && !context.auth) {
             throw new Error('Authentication required');
         }
 
-        // Check if user has admin privileges
-        const userRef = db.collection('users').doc(context.auth.uid);
-        const userDoc = await userRef.get();
-        const userData = userDoc.data();
+        // In development mode, skip admin check
+        if (process.env.NODE_ENV !== 'development') {
+            // Check if user has admin privileges
+            const userRef = db.collection('users').doc(context.auth.uid);
+            const userDoc = await userRef.get();
+            const userData = userDoc.data();
 
-        if (!userData || !userData.role || userData.role !== 'admin') {
-            throw new Error('Unauthorized. Admin privileges required.');
+            if (!userData || !userData.role || userData.role !== 'admin') {
+                throw new Error('Unauthorized. Admin privileges required.');
+            }
         }
 
         // Get the content from the request
-        const { content, title, url } = data;
+        const { content, title, url } = data || {};
 
-        if (!content) {
+        console.log("Processed content parameters:", {
+            hasContent: Boolean(content),
+            contentLength: content ? content.length : 0,
+            title,
+            url
+        });
+
+        if (!content || content.trim() === '') {
             throw new Error('Content is required');
         }
 
@@ -43,6 +56,38 @@ exports.processArticleContent = functions.onCall({
 
         if (!openRouterApiKey) {
             throw new Error('OpenRouter API key not configured');
+        }
+
+        // In development mode with a test API key, return mock results
+        if (process.env.NODE_ENV === 'development' && openRouterApiKey.includes('test')) {
+            console.log("Using mock processing results for development");
+
+            const mockResult = {
+                summary: "This article discusses advances in geological research focused on understanding plate tectonics and their relationship to seismic activity. Researchers have developed new models that better predict earthquake patterns by analyzing historical data and using machine learning algorithms. The findings suggest that subtle crustal movements detected by satellite imaging can provide early warning signs weeks before major seismic events.",
+                category: "geology",
+                interestLevel: 85,
+                model: "mock-model",
+                processingTime: new Date().toISOString()
+            };
+
+            // Store the results in Firestore
+            const docRef = db.collection('processed_articles').doc();
+            await docRef.set({
+                original: {
+                    content: content.substring(0, 10000), // Limit content size
+                    title,
+                    url
+                },
+                processed: mockResult,
+                timestamp: admin.firestore.FieldValue.serverTimestamp(),
+                userId: context.auth ? context.auth.uid : 'development-user'
+            });
+
+            return {
+                success: true,
+                result: mockResult,
+                id: docRef.id
+            };
         }
 
         // Prepare content to process
@@ -61,7 +106,7 @@ exports.processArticleContent = functions.onCall({
             },
             processed: result,
             timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            userId: context.auth.uid
+            userId: context.auth ? context.auth.uid : 'development-user'
         });
 
         return {
