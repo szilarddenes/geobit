@@ -2,20 +2,23 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { toast } from 'react-toastify';
-import { 
-  FiRefreshCw, 
-  FiUsers, 
-  FiMail, 
-  FiTrendingUp, 
-  FiBarChart2, 
-  FiPieChart, 
+import {
+  FiRefreshCw,
+  FiUsers,
+  FiMail,
+  FiTrendingUp,
+  FiBarChart2,
+  FiPieChart,
   FiDownload,
   FiCalendar
 } from 'react-icons/fi';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { verifyAdminTokenLocally } from '@/lib/firebase';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function AnalyticsPage() {
+export default withAdminAuth(AnalyticsPage);
+
+function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
   const [timeRange, setTimeRange] = useState('30d'); // 7d, 30d, 90d, 1y
@@ -35,13 +38,13 @@ export default function AnalyticsPage() {
     setIsLoading(true);
     try {
       const adminToken = localStorage.getItem('geobit_admin_token');
-      
+
       // In a real implementation, you would call your Firebase function here
       // const response = await getAnalytics({ token: adminToken, timeRange });
-      
+
       // Development implementation with sample analytics data
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      
+
       if (verifyAdminTokenLocally(adminToken)) {
         // Generate sample analytics data
         const mockData = generateMockAnalytics(timeRange);
@@ -65,10 +68,10 @@ export default function AnalyticsPage() {
     const subscriberData = [];
     const openRateData = [];
     const clickRateData = [];
-    
+
     let days;
     let step;
-    
+
     switch (range) {
       case '7d':
         days = 7;
@@ -90,16 +93,16 @@ export default function AnalyticsPage() {
         days = 30;
         step = 1;
     }
-    
+
     // Generate sample trend data
     let subscribers = 200 + Math.floor(Math.random() * 100);
     const baseOpenRate = 30 + Math.floor(Math.random() * 10);
     const baseClickRate = 5 + Math.floor(Math.random() * 5);
-    
+
     for (let i = days; i >= 0; i -= step) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
-      
+
       if (step === 1) {
         // Daily format
         labels.push(date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
@@ -110,20 +113,20 @@ export default function AnalyticsPage() {
         // Monthly format
         labels.push(date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' }));
       }
-      
+
       // Simulate subscriber growth
       const growth = Math.random() * 10 - 2; // -2 to 8 new subscribers per period
       subscribers += Math.max(0, Math.floor(growth));
       subscriberData.push(subscribers);
-      
+
       // Simulate fluctuating open and click rates
       const openRateVar = (Math.random() * 10) - 5; // -5 to 5% variation
       const clickRateVar = (Math.random() * 4) - 2; // -2 to 2% variation
-      
+
       openRateData.push(Math.max(15, Math.min(70, baseOpenRate + openRateVar)));
       clickRateData.push(Math.max(1, Math.min(20, baseClickRate + clickRateVar)));
     }
-    
+
     // Content preferences
     const contentPreferences = [
       { category: 'Research Papers', percentage: 35 + Math.floor(Math.random() * 10) },
@@ -132,42 +135,42 @@ export default function AnalyticsPage() {
       { category: 'Field Studies', percentage: 15 + Math.floor(Math.random() * 5) },
       { category: 'Other', percentage: 5 + Math.floor(Math.random() * 3) }
     ];
-    
+
     // Normalize to 100%
     const total = contentPreferences.reduce((sum, item) => sum + item.percentage, 0);
     contentPreferences.forEach(item => {
       item.percentage = Math.round((item.percentage / total) * 100);
     });
-    
+
     // Most engaged content
     const popularContent = [
-      { 
-        title: 'Recent Advancements in Seismic Monitoring', 
+      {
+        title: 'Recent Advancements in Seismic Monitoring',
         openRate: 65 + Math.floor(Math.random() * 10),
         clickRate: 32 + Math.floor(Math.random() * 10)
       },
-      { 
-        title: 'New Research on Climate Impact on Geological Formations', 
+      {
+        title: 'New Research on Climate Impact on Geological Formations',
         openRate: 58 + Math.floor(Math.random() * 10),
         clickRate: 27 + Math.floor(Math.random() * 10)
       },
-      { 
-        title: 'Breakthrough in Mineral Extraction Technologies', 
+      {
+        title: 'Breakthrough in Mineral Extraction Technologies',
         openRate: 52 + Math.floor(Math.random() * 10),
         clickRate: 24 + Math.floor(Math.random() * 10)
       },
-      { 
-        title: 'Understanding Deep Ocean Geological Processes', 
+      {
+        title: 'Understanding Deep Ocean Geological Processes',
         openRate: 49 + Math.floor(Math.random() * 10),
         clickRate: 20 + Math.floor(Math.random() * 10)
       }
     ];
-    
+
     // Summary metrics
     const currentSubscribers = subscribers;
     const avgOpenRate = openRateData.reduce((sum, val) => sum + val, 0) / openRateData.length;
     const avgClickRate = clickRateData.reduce((sum, val) => sum + val, 0) / clickRateData.length;
-    
+
     const growth = {};
     if (range === '7d') {
       growth.subscribers = Math.floor((subscriberData[subscriberData.length - 1] - subscriberData[0]) / subscriberData[0] * 100);
@@ -177,21 +180,21 @@ export default function AnalyticsPage() {
       const halfwayIndex = Math.floor(subscriberData.length / 2);
       const firstHalf = subscriberData.slice(0, halfwayIndex);
       const secondHalf = subscriberData.slice(halfwayIndex);
-      
+
       const firstHalfAvg = firstHalf.reduce((sum, val) => sum + val, 0) / firstHalf.length;
       const secondHalfAvg = secondHalf.reduce((sum, val) => sum + val, 0) / secondHalf.length;
-      
+
       growth.subscribers = Math.floor((secondHalfAvg - firstHalfAvg) / firstHalfAvg * 100);
-      
+
       const firstHalfOpenAvg = openRateData.slice(0, halfwayIndex).reduce((sum, val) => sum + val, 0) / firstHalf.length;
       const secondHalfOpenAvg = openRateData.slice(halfwayIndex).reduce((sum, val) => sum + val, 0) / secondHalf.length;
       growth.openRate = ((secondHalfOpenAvg - firstHalfOpenAvg) / firstHalfOpenAvg * 100).toFixed(1);
-      
+
       const firstHalfClickAvg = clickRateData.slice(0, halfwayIndex).reduce((sum, val) => sum + val, 0) / firstHalf.length;
       const secondHalfClickAvg = clickRateData.slice(halfwayIndex).reduce((sum, val) => sum + val, 0) / secondHalf.length;
       growth.clickRate = ((secondHalfClickAvg - firstHalfClickAvg) / firstHalfClickAvg * 100).toFixed(1);
     }
-    
+
     return {
       summary: {
         currentSubscribers,
@@ -212,12 +215,12 @@ export default function AnalyticsPage() {
 
   const handleExportAnalytics = () => {
     if (!dashboardData) return;
-    
+
     // Convert analytics summary to CSV
     const headers = [
       'Metric', 'Value', 'Growth'
     ];
-    
+
     const summary = dashboardData.summary;
     const csvContent = [
       headers.join(','),
@@ -231,13 +234,13 @@ export default function AnalyticsPage() {
         item.category, `${item.percentage}%`, ''
       ].join(','))
     ].join('\n');
-    
+
     // Create a download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `geobit-analytics-${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `geobit-analytics-${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -266,7 +269,7 @@ export default function AnalyticsPage() {
               <option value="1y">Last Year</option>
             </select>
           </div>
-          
+
           <button
             onClick={fetchAnalytics}
             disabled={isLoading}
@@ -275,7 +278,7 @@ export default function AnalyticsPage() {
             <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
             {isLoading ? 'Loading...' : 'Refresh'}
           </button>
-          
+
           <button
             onClick={handleExportAnalytics}
             disabled={isLoading || !dashboardData}
@@ -316,7 +319,7 @@ export default function AnalyticsPage() {
                 {dashboardData.summary.currentSubscribers.toLocaleString()}
               </p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
@@ -337,7 +340,7 @@ export default function AnalyticsPage() {
                 {dashboardData.summary.avgOpenRate.toFixed(1)}%
               </p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
@@ -359,7 +362,7 @@ export default function AnalyticsPage() {
               </p>
             </div>
           </div>
-          
+
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white p-6 rounded-lg shadow-md">
@@ -373,7 +376,7 @@ export default function AnalyticsPage() {
                 {/* In a real implementation, you would render a line chart here */}
               </div>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
                 <FiBarChart2 className="mr-2" /> Engagement Metrics
@@ -386,14 +389,14 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Content Analytics */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
                 <FiPieChart className="mr-2" /> Content Preferences
               </h2>
-              
+
               <div>
                 {dashboardData.contentPreferences.map((item, index) => (
                   <div key={index} className="mb-3">
@@ -411,12 +414,12 @@ export default function AnalyticsPage() {
                 ))}
               </div>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
                 <FiBarChart2 className="mr-2" /> Top Performing Content
               </h2>
-              
+
               <div className="space-y-4">
                 {dashboardData.popularContent.map((item, index) => (
                   <div key={index} className="p-3 border border-gray-200 rounded-lg">
@@ -452,7 +455,7 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Development Mode Notice */}
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="text-blue-700 text-sm">

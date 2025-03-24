@@ -6,8 +6,11 @@ import { FiArrowLeft, FiSave, FiSend, FiTrash2, FiEye } from 'react-icons/fi';
 import { getNewsletter, verifyAdminTokenLocally } from '@/lib/firebase';
 import AdminLayout from '@/components/admin/AdminLayout';
 import NewsletterEditor from '@/components/admin/NewsletterEditor';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function EditNewsletterPage() {
+export default withAdminAuth(NewsletterEditPage);
+
+function NewsletterEditPage() {
   const [newsletter, setNewsletter] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -32,7 +35,7 @@ export default function EditNewsletterPage() {
     setIsLoading(true);
     try {
       const adminToken = localStorage.getItem('geobit_admin_token');
-      const response = await getNewsletter({ 
+      const response = await getNewsletter({
         token: adminToken,
         newsletterId
       });
@@ -45,7 +48,7 @@ export default function EditNewsletterPage() {
       }
     } catch (error) {
       console.error('Error fetching newsletter:', error);
-      
+
       // Development fallback
       const adminToken = localStorage.getItem('geobit_admin_token');
       if (verifyAdminTokenLocally(adminToken)) {
@@ -86,31 +89,31 @@ export default function EditNewsletterPage() {
 
   const handleSaveNewsletter = async (updatedNewsletter, callback) => {
     if (isSaving) return;
-    
+
     setIsSaving(true);
     try {
       const adminToken = localStorage.getItem('geobit_admin_token');
-      
+
       // In a real implementation, you would call your Firebase function here
       // const response = await saveNewsletter({ token: adminToken, newsletter: updatedNewsletter });
-      
+
       // Development implementation
       console.log('Saving newsletter:', updatedNewsletter);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       // Update local state
       const currentTime = new Date().toISOString();
       const updatedWithTimestamp = {
         ...updatedNewsletter,
         updatedAt: currentTime
       };
-      
+
       setNewsletter(updatedWithTimestamp);
       setLastSaved(currentTime);
       toast.success('Newsletter saved successfully');
-      
+
       // Call callback if provided (used for publish workflow)
       if (callback && typeof callback === 'function') {
         callback();
@@ -125,20 +128,20 @@ export default function EditNewsletterPage() {
 
   const handlePublishNewsletter = async () => {
     if (isPublishing) return;
-    
+
     setIsPublishing(true);
     try {
       const adminToken = localStorage.getItem('geobit_admin_token');
-      
+
       // In a real implementation, you would call your Firebase function here
       // const response = await publishNewsletter({ token: adminToken, newsletterId: newsletter.id });
-      
+
       // Development implementation
       console.log('Publishing newsletter:', newsletter.id);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1200));
-      
+
       // Update local state
       const currentTime = new Date().toISOString();
       const publishedNewsletter = {
@@ -147,7 +150,7 @@ export default function EditNewsletterPage() {
         publishedAt: currentTime,
         updatedAt: currentTime
       };
-      
+
       setNewsletter(publishedNewsletter);
       setLastSaved(currentTime);
       toast.success('Newsletter published successfully');
@@ -164,7 +167,7 @@ export default function EditNewsletterPage() {
     if (newsletter) {
       // In a real implementation, you would redirect to a preview URL
       // window.open(`/newsletters/preview/${newsletter.id}`, '_blank');
-      
+
       // For development, just show a toast
       toast.info('Preview functionality will be available in production');
     }
@@ -190,7 +193,7 @@ export default function EditNewsletterPage() {
               {isLoading ? 'Loading Newsletter...' : `Edit Newsletter: ${newsletter?.title || 'Untitled'}`}
             </h1>
           </div>
-          
+
           <div className="flex space-x-2">
             <button
               onClick={handlePreviewNewsletter}
@@ -202,7 +205,7 @@ export default function EditNewsletterPage() {
             </button>
           </div>
         </div>
-        
+
         <div className="flex mt-2 text-sm">
           <div className="flex items-center mr-4 text-gray-600">
             ID: {newsletter?.id || 'Loading...'}
@@ -213,12 +216,11 @@ export default function EditNewsletterPage() {
                 Created: {new Date(newsletter.createdAt).toLocaleDateString()}
               </div>
               <div className="flex items-center mr-4">
-                Status: 
-                <span className={`ml-1 px-2 py-0.5 rounded-full text-xs ${
-                  newsletter.status === 'published' 
-                    ? 'bg-green-100 text-green-800' 
+                Status:
+                <span className={`ml-1 px-2 py-0.5 rounded-full text-xs ${newsletter.status === 'published'
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-yellow-100 text-yellow-800'
-                }`}>
+                  }`}>
                   {newsletter.status === 'published' ? 'Published' : 'Draft'}
                 </span>
               </div>
@@ -239,7 +241,7 @@ export default function EditNewsletterPage() {
             <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
             <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
             <div className="h-4 bg-gray-200 rounded w-5/6 mb-6"></div>
-            
+
             <div className="h-6 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
             <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
             <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>

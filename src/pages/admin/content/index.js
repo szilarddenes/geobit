@@ -6,8 +6,9 @@ import { toast } from 'react-hot-toast';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import { FaPlus, FaSearch, FaEdit, FaTrash, FaFilter } from 'react-icons/fa';
 import { verifyAdminTokenLocally } from '../../../lib/firebase';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function ContentManagement() {
+function ContentManagement() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [contentItems, setContentItems] = useState([]);
@@ -474,4 +475,6 @@ export default function ContentManagement() {
             </div>
         </AdminLayout>
     );
-} 
+}
+
+export default withAdminAuth(ContentManagement); 

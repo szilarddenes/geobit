@@ -3,12 +3,10 @@
 // The test user can be used to access admin routes during development
 
 const admin = require('firebase-admin');
-const serviceAccount = require('../firebase-service-account.json');
 
 // Initialize the admin SDK with emulator settings
+// No need for service account when using emulators
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: 'http://localhost:9000?ns=geobit',
     projectId: 'geobit'
 });
 
@@ -28,55 +26,54 @@ async function createTestAdmin() {
 
             // Ensure admin role in Firestore
             await setAdminRole(userRecord.uid);
-
-            return userRecord.uid;
+            process.exit(0);
         } catch (error) {
-            // User doesn't exist, create a new one
+            // User doesn't exist, continue with creation
             if (error.code === 'auth/user-not-found') {
-                const userRecord = await admin.auth().createUser({
-                    email: 'test@test.test',
-                    password: 'testtest',
-                    displayName: 'Test Admin',
-                });
-
-                console.log('Created new test admin user:', userRecord.uid);
-
-                // Set admin role in Firestore
-                await setAdminRole(userRecord.uid);
-
-                return userRecord.uid;
+                console.log('Creating new test admin user...');
             } else {
-                throw error;
+                console.error('Error checking user:', error);
+                process.exit(1);
             }
         }
+
+        // Create new user
+        const userRecord = await admin.auth().createUser({
+            email: 'test@test.test',
+            password: 'testtest',
+            displayName: 'Test Admin'
+        });
+
+        console.log('Created test user:', userRecord.uid);
+
+        // Set custom claims to mark as admin
+        await admin.auth().setCustomUserClaims(userRecord.uid, { admin: true });
+        console.log('Set admin claims for user');
+
+        // Also store in Firestore for redundancy
+        await setAdminRole(userRecord.uid);
+
+        console.log('Successfully created test admin user:');
+        console.log('Email: test@test.test');
+        console.log('Password: testtest');
+
+        process.exit(0);
     } catch (error) {
-        console.error('Error creating test admin user:', error);
+        console.error('Error creating test admin:', error);
         process.exit(1);
     }
 }
 
-// Set admin role in Firestore
 async function setAdminRole(uid) {
+    // Create a document in the admins collection
     const db = admin.firestore();
-
-    await db.collection('users').doc(uid).set({
-        role: 'admin',
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+    await db.collection('admins').doc(uid).set({
         email: 'test@test.test',
         displayName: 'Test Admin',
-    }, { merge: true });
-
-    console.log('Set admin role for user:', uid);
+        addedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    console.log('Added user to admins collection in Firestore');
 }
 
-// Run the function and exit when done
-createTestAdmin()
-    .then(() => {
-        console.log('Test admin user creation complete.');
-        process.exit(0);
-    })
-    .catch(error => {
-        console.error('Error in test admin creation script:', error);
-        process.exit(1);
-    }); 
+// Execute the function
+createTestAdmin(); 

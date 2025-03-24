@@ -5,13 +5,27 @@ import { FiUsers, FiFileText, FiPieChart, FiEye, FiPlus, FiCpu, FiSearch } from 
 import { verifyAdminTokenLocally } from '../../lib/auth';
 import { generateNewsletterOnDemand } from '../../lib/api/admin';
 import { getApiStatus } from '../../lib/api/status';
+import withAdminAuth from '@/components/admin/withAdminAuth';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Chart, registerables } from 'chart.js';
 
-export default function AdminDashboard() {
+// Register Chart.js components
+if (typeof window !== 'undefined') {
+  Chart.register(...registerables);
+}
+
+function Dashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [apiStatus, setApiStatus] = useState(null);
   const [newsletterStatus, setNewsletterStatus] = useState(null);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    users: 0,
+    posts: 0,
+    aiUsage: 0,
+    subscribers: 0,
+  });
 
   useEffect(() => {
     // Check if user is logged in
@@ -270,3 +284,5 @@ export default function AdminDashboard() {
     </AdminLayout>
   );
 }
+
+export default withAdminAuth(Dashboard);

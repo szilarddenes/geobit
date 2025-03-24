@@ -2,10 +2,5 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/admin/content": "pages/admin/content.js",
-  "/admin/analytics": "pages/admin/analytics.js",
-  "/admin/settings": "pages/admin/settings.js",
-  "/admin/subscribers": "pages/admin/subscribers.js",
-  "/admin": "pages/admin.js"
+  "/": "pages/index.js"
 }

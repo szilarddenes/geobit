@@ -2,20 +2,21 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { toast } from 'react-toastify';
-import { 
-  FiRefreshCw, 
-  FiFilter, 
-  FiSearch, 
-  FiDownload, 
-  FiAlertCircle, 
-  FiInfo, 
+import {
+  FiRefreshCw,
+  FiFilter,
+  FiSearch,
+  FiDownload,
+  FiAlertCircle,
+  FiInfo,
   FiXCircle,
   FiCheckCircle
 } from 'react-icons/fi';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { verifyAdminTokenLocally } from '@/lib/firebase';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function SystemLogsPage() {
+export default withAdminAuth(function SystemLogsPage() {
   const [logs, setLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -38,13 +39,13 @@ export default function SystemLogsPage() {
     setIsLoading(true);
     try {
       const adminToken = localStorage.getItem('geobit_admin_token');
-      
+
       // In a real implementation, you would call your Firebase function here
       // const response = await getLogs({ token: adminToken, timeRange });
-      
+
       // Development implementation with sample log data
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate API call
-      
+
       if (verifyAdminTokenLocally(adminToken)) {
         // Generate sample logs based on time range
         const mockLogs = generateMockLogs(timeRange);
@@ -64,14 +65,14 @@ export default function SystemLogsPage() {
 
   const generateMockLogs = (range) => {
     // Generate appropriate number of logs based on time range
-    const count = range === '1h' ? 20 : 
-                 range === '6h' ? 50 : 
-                 range === '1d' ? 100 : 
-                 range === '7d' ? 200 : 300;
-                 
+    const count = range === '1h' ? 20 :
+      range === '6h' ? 50 :
+        range === '1d' ? 100 :
+          range === '7d' ? 200 : 300;
+
     const now = new Date();
     const logs = [];
-    
+
     // Determine the start time based on range
     const getStartTime = () => {
       switch (range) {
@@ -83,10 +84,10 @@ export default function SystemLogsPage() {
         default: return new Date(now.getTime() - 24 * 60 * 60 * 1000);
       }
     };
-    
+
     const startTime = getStartTime();
     const timeSpan = now.getTime() - startTime.getTime();
-    
+
     const services = ['api', 'firebase', 'email', 'scraper', 'scheduler'];
     const levels = ['info', 'warning', 'error'];
     const messageTemplates = {
@@ -123,24 +124,24 @@ export default function SystemLogsPage() {
         'Invalid content format detected'
       ]
     };
-    
+
     // Generate random logs
     for (let i = 0; i < count; i++) {
       const level = levels[Math.floor(Math.random() * 10) > 8 ? 2 : // 10% errors
-                          Math.floor(Math.random() * 10) > 7 ? 1 : 0]; // 20% warnings, 70% info
+        Math.floor(Math.random() * 10) > 7 ? 1 : 0]; // 20% warnings, 70% info
       const service = services[Math.floor(Math.random() * services.length)];
       const randomTime = new Date(startTime.getTime() + Math.random() * timeSpan);
-      
+
       const messages = messageTemplates[level];
       const message = messages[Math.floor(Math.random() * messages.length)];
-      
+
       // Generate a more detailed random reason for errors and warnings
       let details = '';
       if (level === 'error') {
         const errorReasons = [
-          'Connection timeout', 
-          'Invalid authentication token', 
-          'Service unavailable', 
+          'Connection timeout',
+          'Invalid authentication token',
+          'Service unavailable',
           'Rate limit exceeded',
           'Internal server error',
           'Bad request format'
@@ -156,7 +157,7 @@ export default function SystemLogsPage() {
         ];
         details = warningReasons[Math.floor(Math.random() * warningReasons.length)];
       }
-      
+
       logs.push({
         id: `log-${i}`,
         timestamp: randomTime.toISOString(),
@@ -166,14 +167,14 @@ export default function SystemLogsPage() {
         details
       });
     }
-    
+
     // Sort logs by timestamp (newest first)
     return logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   };
 
   const handleExportLogs = () => {
     const filteredData = getFilteredLogs();
-    
+
     // Convert logs to CSV
     const headers = ['Timestamp', 'Level', 'Service', 'Message', 'Details'];
     const csvContent = [
@@ -186,13 +187,13 @@ export default function SystemLogsPage() {
         `"${(log.details || '').replace(/"/g, '""')}"`
       ].join(','))
     ].join('\n');
-    
+
     // Create a download link
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `geobit-logs-${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `geobit-logs-${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -204,23 +205,23 @@ export default function SystemLogsPage() {
       if (levelFilter !== 'all' && log.level !== levelFilter) {
         return false;
       }
-      
+
       // Filter by service
       if (serviceFilter !== 'all' && log.service !== serviceFilter) {
         return false;
       }
-      
+
       // Filter by search term (in message or details)
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const messageMatch = log.message.toLowerCase().includes(searchLower);
         const detailsMatch = log.details && log.details.toLowerCase().includes(searchLower);
-        
+
         if (!messageMatch && !detailsMatch) {
           return false;
         }
       }
-      
+
       return true;
     });
   };
@@ -258,7 +259,7 @@ export default function SystemLogsPage() {
             <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
             {isLoading ? 'Loading...' : 'Refresh'}
           </button>
-          
+
           <button
             onClick={handleExportLogs}
             disabled={isLoading || filteredLogs.length === 0}
@@ -287,7 +288,7 @@ export default function SystemLogsPage() {
               />
             </div>
           </div>
-          
+
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center">
               <FiFilter className="text-gray-400 mr-2" />
@@ -302,7 +303,7 @@ export default function SystemLogsPage() {
                 <option value="error">Errors</option>
               </select>
             </div>
-            
+
             <div className="flex items-center">
               <select
                 value={serviceFilter}
@@ -317,7 +318,7 @@ export default function SystemLogsPage() {
                 <option value="scheduler">Scheduler</option>
               </select>
             </div>
-            
+
             <div className="flex items-center">
               <select
                 value={timeRange}
@@ -366,7 +367,7 @@ export default function SystemLogsPage() {
                 Showing {filteredLogs.length} of {logs.length} logs
               </div>
             </div>
-            
+
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -390,10 +391,9 @@ export default function SystemLogsPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredLogs.map(log => (
-                    <tr key={log.id} className={`hover:bg-gray-50 ${
-                      log.level === 'error' ? 'bg-red-50' :
-                      log.level === 'warning' ? 'bg-amber-50' : ''
-                    }`}>
+                    <tr key={log.id} className={`hover:bg-gray-50 ${log.level === 'error' ? 'bg-red-50' :
+                        log.level === 'warning' ? 'bg-amber-50' : ''
+                      }`}>
                       <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(log.timestamp).toLocaleTimeString()}
                         <div className="text-xs text-gray-400">
@@ -403,11 +403,10 @@ export default function SystemLogsPage() {
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {getLogIcon(log.level)}
-                          <span className={`ml-2 capitalize ${
-                            log.level === 'error' ? 'text-red-700' :
-                            log.level === 'warning' ? 'text-amber-700' :
-                            'text-blue-700'
-                          }`}>
+                          <span className={`ml-2 capitalize ${log.level === 'error' ? 'text-red-700' :
+                              log.level === 'warning' ? 'text-amber-700' :
+                                'text-blue-700'
+                            }`}>
                             {log.level}
                           </span>
                         </div>
@@ -428,7 +427,7 @@ export default function SystemLogsPage() {
                 </tbody>
               </table>
             </div>
-            
+
             {/* Pagination would go here */}
             <div className="px-4 py-3 bg-gray-50 border-t text-right">
               <div className="text-sm text-gray-500">
@@ -440,4 +439,4 @@ export default function SystemLogsPage() {
       </div>
     </AdminLayout>
   );
-}
+});

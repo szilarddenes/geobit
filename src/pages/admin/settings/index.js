@@ -3,8 +3,9 @@ import { useRouter } from 'next/router';
 import { toast } from 'react-hot-toast';
 import { FiSave, FiRefreshCw, FiSliders, FiMail, FiServer, FiLock, FiGlobe, FiCalendar, FiGrid } from 'react-icons/fi';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function AdminSettings() {
+function SettingsPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -435,4 +436,6 @@ export default function AdminSettings() {
             </div>
         </AdminLayout>
     );
-} 
+}
+
+export default withAdminAuth(SettingsPage); 

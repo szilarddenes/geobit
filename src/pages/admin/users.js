@@ -3,9 +3,10 @@ import { useRouter } from 'next/router';
 import { FiUser, FiPlus, FiTrash2, FiMail } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import AdminLayout from '@/components/AdminLayout';
-import { getAdminUsers, addAdminUser, onAuthStateChange, checkIsAdmin } from '../../lib/firebase-exports';
+import { getAdminUsers, addAdminUser } from '../../lib/firebase-exports';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function AdminUsersPage() {
+function UsersPage() {
     const [admins, setAdmins] = useState([]);
     const [loading, setLoading] = useState(true);
     const [newEmail, setNewEmail] = useState('');
@@ -15,23 +16,8 @@ export default function AdminUsersPage() {
     const router = useRouter();
 
     useEffect(() => {
-        // Check authentication and admin status
-        const unsubscribe = onAuthStateChange(async (user) => {
-            if (user) {
-                const isAdmin = await checkIsAdmin(user);
-                if (!isAdmin) {
-                    router.push('/admin');
-                    toast.error("You don't have admin privileges");
-                } else {
-                    loadAdminUsers();
-                }
-            } else {
-                router.push('/admin');
-            }
-        });
-
-        return () => unsubscribe();
-    }, [router]);
+        loadAdminUsers();
+    }, []);
 
     const loadAdminUsers = async () => {
         try {
@@ -205,4 +191,6 @@ export default function AdminUsersPage() {
             </div>
         </AdminLayout>
     );
-} 
+}
+
+export default withAdminAuth(UsersPage); 

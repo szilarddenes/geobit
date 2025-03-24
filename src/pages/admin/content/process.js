@@ -8,8 +8,11 @@ import { FiArrowLeft, FiLoader, FiCpu, FiCheckCircle, FiAlertCircle, FiCheck, Fi
 // Admin components
 import AdminLayout from '@/components/admin/AdminLayout';
 import { processArticleContent } from '@/lib/api/ai';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function ProcessContent() {
+export default withAdminAuth(ProcessContent);
+
+function ProcessContent() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({

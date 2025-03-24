@@ -1,12 +1,27 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { collection, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
+import { FaTrash, FaEnvelope, FaSync, FaFileExport, FaFilter } from 'react-icons/fa';
+import { format } from 'date-fns';
+import { toast } from 'react-hot-toast';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 import { FiUsers, FiUserPlus, FiUserMinus, FiEdit, FiTrash, FiDownload, FiUpload, FiSearch } from 'react-icons/fi';
 
-export default function SubscribersPage() {
+function SubscribersPage() {
+    const router = useRouter();
     const [subscribers, setSubscribers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [filteredSubscribers, setFilteredSubscribers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [subscribersPerPage] = useState(10);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [totalSubscribers, setTotalSubscribers] = useState(0);
+    const [selectedSubscribers, setSelectedSubscribers] = useState([]);
+    const [selectAll, setSelectAll] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     const [newSubscriber, setNewSubscriber] = useState({ email: '', name: '' });
 
@@ -14,7 +29,7 @@ export default function SubscribersPage() {
     useEffect(() => {
         const fetchSubscribers = async () => {
             try {
-                setLoading(true);
+                setIsLoading(true);
 
                 // In a real implementation, this would call a Firebase function
                 // Mock data for development
@@ -29,12 +44,12 @@ export default function SubscribersPage() {
                 // Simulate API delay
                 setTimeout(() => {
                     setSubscribers(mockSubscribers);
-                    setLoading(false);
+                    setIsLoading(false);
                 }, 1000);
             } catch (err) {
                 console.error('Error fetching subscribers:', err);
-                setError('Failed to load subscribers. Please try again later.');
-                setLoading(false);
+                toast.error('Failed to load subscribers. Please try again later.');
+                setIsLoading(false);
             }
         };
 
@@ -52,7 +67,7 @@ export default function SubscribersPage() {
 
         // Validate input
         if (!newSubscriber.email || !newSubscriber.email.includes('@')) {
-            alert('Please enter a valid email address');
+            toast.error('Please enter a valid email address');
             return;
         }
 
@@ -215,13 +230,9 @@ export default function SubscribersPage() {
                 )}
 
                 {/* Subscribers table */}
-                {loading ? (
+                {isLoading ? (
                     <div className="flex justify-center items-center py-12">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                    </div>
-                ) : error ? (
-                    <div className="bg-red-900/20 border border-red-900/30 text-red-500 p-4 rounded-lg">
-                        {error}
                     </div>
                 ) : (
                     <div className="bg-dark-lighter border border-dark-border rounded-lg overflow-hidden shadow-lg">
@@ -261,8 +272,8 @@ export default function SubscribersPage() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${subscriber.status === 'active'
-                                                            ? 'bg-green-900/20 text-green-500'
-                                                            : 'bg-red-900/20 text-red-500'
+                                                        ? 'bg-green-900/20 text-green-500'
+                                                        : 'bg-red-900/20 text-red-500'
                                                         }`}>
                                                         {subscriber.status}
                                                     </span>
@@ -278,8 +289,8 @@ export default function SubscribersPage() {
                                                         <button
                                                             onClick={() => handleStatusToggle(subscriber.id)}
                                                             className={`p-1.5 rounded ${subscriber.status === 'active'
-                                                                    ? 'text-green-500 hover:bg-green-900/20'
-                                                                    : 'text-red-500 hover:bg-red-900/20'
+                                                                ? 'text-green-500 hover:bg-green-900/20'
+                                                                : 'text-red-500 hover:bg-red-900/20'
                                                                 }`}
                                                             title={subscriber.status === 'active' ? 'Deactivate' : 'Activate'}
                                                         >
@@ -317,4 +328,6 @@ export default function SubscribersPage() {
             </div>
         </AdminLayout>
     );
-} 
+}
+
+export default withAdminAuth(SubscribersPage); 

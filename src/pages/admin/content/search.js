@@ -5,8 +5,9 @@ import { BiHash } from 'react-icons/bi';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import api from '../../../lib/api';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function SearchNews() {
+export default withAdminAuth(function SearchNews() {
   const [searchParams, setSearchParams] = useState({
     keywords: '',
     dateRange: '7d', // 1d, 7d, 30d, 90d
@@ -388,4 +389,4 @@ export default function SearchNews() {
       </div>
     </AdminLayout>
   );
-} 
+}); 

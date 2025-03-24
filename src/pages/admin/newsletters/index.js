@@ -3,21 +3,24 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
-import { 
-  FiPlus, 
-  FiRefreshCw, 
-  FiEdit2, 
-  FiTrash2, 
-  FiFile, 
-  FiSend, 
-  FiCalendar, 
-  FiSearch, 
-  FiFilter 
+import {
+  FiPlus,
+  FiRefreshCw,
+  FiEdit2,
+  FiTrash2,
+  FiFile,
+  FiSend,
+  FiCalendar,
+  FiSearch,
+  FiFilter
 } from 'react-icons/fi';
 import { getNewsletters, generateNewsletterOnDemand, verifyAdminTokenLocally } from '@/lib/firebase';
 import AdminLayout from '@/components/admin/AdminLayout';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function NewslettersPage() {
+export default withAdminAuth(NewslettersPage);
+
+function NewslettersPage() {
   const [newsletters, setNewsletters] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -41,7 +44,7 @@ export default function NewslettersPage() {
     setIsLoading(true);
     try {
       const adminToken = localStorage.getItem('geobit_admin_token');
-      const response = await getNewsletters({ 
+      const response = await getNewsletters({
         token: adminToken
       });
 
@@ -52,7 +55,7 @@ export default function NewslettersPage() {
       }
     } catch (error) {
       console.error('Error fetching newsletters:', error);
-      
+
       // Development fallback
       const adminToken = localStorage.getItem('geobit_admin_token');
       if (verifyAdminTokenLocally(adminToken)) {
@@ -90,7 +93,7 @@ export default function NewslettersPage() {
             updatedAt: '2025-03-12T11:30:00Z',
           }
         ];
-        
+
         setNewsletters(mockNewsletters);
         toast.info('Using development mode with sample newsletter data');
       } else {
@@ -127,7 +130,7 @@ export default function NewslettersPage() {
       }
     } catch (error) {
       console.error('Error generating newsletter:', error);
-      
+
       // Development fallback
       const adminToken = localStorage.getItem('geobit_admin_token');
       if (verifyAdminTokenLocally(adminToken)) {
@@ -140,7 +143,7 @@ export default function NewslettersPage() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
-        
+
         setNewsletters([mockNewsletter, ...newsletters]);
         toast.success('Development mode: Newsletter generation simulated');
         router.push(`/admin/newsletters/edit/${newId}`);
@@ -158,23 +161,23 @@ export default function NewslettersPage() {
       if (statusFilter !== 'all' && newsletter.status !== statusFilter) {
         return false;
       }
-      
+
       // Filter by search term
       if (searchTerm && !newsletter.title.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
       }
-      
+
       return true;
     })
     .sort((a, b) => {
       // Sort by selected field
       const aValue = a[sortBy];
       const bValue = b[sortBy];
-      
+
       if (!aValue && !bValue) return 0;
       if (!aValue) return sortOrder === 'asc' ? 1 : -1;
       if (!bValue) return sortOrder === 'asc' ? -1 : 1;
-      
+
       // Compare dates or strings
       const comparison = new Date(aValue) > new Date(bValue) ? 1 : -1;
       return sortOrder === 'asc' ? comparison : -comparison;
@@ -198,7 +201,7 @@ export default function NewslettersPage() {
             <FiRefreshCw className={isLoading ? 'animate-spin' : ''} />
             {isLoading ? 'Loading...' : 'Refresh'}
           </button>
-          
+
           <button
             onClick={handleGenerateNewsletter}
             disabled={isGenerating}
@@ -227,7 +230,7 @@ export default function NewslettersPage() {
               />
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             <div className="flex items-center">
               <FiFilter className="text-gray-400 mr-2" />
@@ -241,7 +244,7 @@ export default function NewslettersPage() {
                 <option value="published">Published</option>
               </select>
             </div>
-            
+
             <div className="flex items-center">
               <FiCalendar className="text-gray-400 mr-2" />
               <select
@@ -255,7 +258,7 @@ export default function NewslettersPage() {
                 <option value="title">Title</option>
               </select>
             </div>
-            
+
             <button
               onClick={() => setSortOrder(order => order === 'asc' ? 'desc' : 'asc')}
               className="p-2 border border-gray-300 rounded-md hover:bg-gray-100"
@@ -324,12 +327,12 @@ export default function NewslettersPage() {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {filteredNewsletters.map(newsletter => (
-                  <tr 
-                    key={newsletter.id} 
+                  <tr
+                    key={newsletter.id}
                     className="hover:bg-gray-50 transition"
                   >
                     <td className="py-4 px-4">
-                      <Link 
+                      <Link
                         href={`/admin/newsletters/edit/${newsletter.id}`}
                         className="font-medium text-gray-900 hover:text-blue-600"
                       >
@@ -337,11 +340,10 @@ export default function NewslettersPage() {
                       </Link>
                     </td>
                     <td className="py-4 px-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        newsletter.status === 'published' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs rounded-full ${newsletter.status === 'published'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                        }`}>
                         {newsletter.status === 'published' ? 'Published' : 'Draft'}
                       </span>
                     </td>
@@ -352,8 +354,8 @@ export default function NewslettersPage() {
                       {new Date(newsletter.updatedAt).toLocaleDateString()}
                     </td>
                     <td className="py-4 px-4 text-sm text-gray-500">
-                      {newsletter.publishedAt 
-                        ? new Date(newsletter.publishedAt).toLocaleDateString() 
+                      {newsletter.publishedAt
+                        ? new Date(newsletter.publishedAt).toLocaleDateString()
                         : '-'}
                     </td>
                     <td className="py-4 px-4 text-right">
@@ -365,7 +367,7 @@ export default function NewslettersPage() {
                         >
                           <FiEdit2 size={18} />
                         </Link>
-                        
+
                         {newsletter.status !== 'published' && (
                           <button
                             className="p-1 text-green-600 hover:text-green-800 rounded-full hover:bg-green-50"
@@ -374,7 +376,7 @@ export default function NewslettersPage() {
                             <FiSend size={18} />
                           </button>
                         )}
-                        
+
                         <button
                           className="p-1 text-red-600 hover:text-red-800 rounded-full hover:bg-red-50"
                           title="Delete newsletter"

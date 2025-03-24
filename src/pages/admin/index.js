@@ -8,9 +8,13 @@ import { generateNewsletterOnDemand } from '../../lib/api/admin';
 import { getApiStatus } from '../../lib/api/status';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
+import { useAuth } from '@/lib/firebase/auth';
+import withAdminAuth from '@/components/admin/withAdminAuth';
+import LoadingState from '@/components/LoadingState';
 
-export default function AdminHome() {
+function AdminDashboard() {
   const router = useRouter();
+  const { user, isAdmin } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [apiStatus, setApiStatus] = useState(null);
@@ -194,10 +198,8 @@ export default function AdminHome() {
 
   if (isLoading) {
     return (
-      <AdminLayout>
-        <div className="flex justify-center items-center h-full">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
+      <AdminLayout title="Dashboard">
+        <LoadingState message="Loading dashboard data..." />
       </AdminLayout>
     );
   }
@@ -214,233 +216,89 @@ export default function AdminHome() {
   }
 
   return (
-    <AdminLayout>
-      <div className="space-y-6 overflow-y-auto pb-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-light">Admin Dashboard</h1>
+    <AdminLayout title="Dashboard">
+      <div className="space-y-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat, index) => (
+            <div key={index} className="bg-dark-card p-6 rounded-lg shadow-dark-md flex items-start gap-4 border border-dark-border">
+              <div className="p-3 bg-dark-light rounded-full">
+                {stat.icon}
+              </div>
+              <div>
+                <p className="text-light-muted text-sm">{stat.label}</p>
+                <p className="text-2xl font-bold text-primary">{stat.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
 
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={checkApiStatus}
-              disabled={isRefreshing}
-              className="flex items-center space-x-2 bg-dark-light hover:bg-dark-lighter text-primary py-2 px-4 rounded-md transition-colors"
-            >
-              <FiRefreshCw className={`${isRefreshing ? "animate-spin" : ""}`} />
-              <span>{isRefreshing ? "Refreshing..." : "Refresh Status"}</span>
-            </button>
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Subscribers */}
+          <div className="bg-dark-card rounded-lg shadow-dark-md border border-dark-border">
+            <div className="px-6 py-4 border-b border-dark-border">
+              <h2 className="text-lg font-bold text-primary">Recent Subscribers</h2>
+            </div>
+            <div className="p-4">
+              <ul className="divide-y divide-dark-border">
+                {recentSubscribers.map((subscriber) => (
+                  <li key={subscriber.id} className="py-3 flex justify-between">
+                    <span className="text-light">{subscriber.email}</span>
+                    <span className="text-light-muted text-sm">{subscriber.date}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
-            <button
-              onClick={handleSignOut}
-              className="flex items-center space-x-2 bg-red-900/30 hover:bg-red-900/50 text-red-300 py-2 px-4 rounded-md transition-colors"
-            >
-              <FiLogOut />
-              <span>Sign Out</span>
-            </button>
+          {/* Upcoming Newsletters */}
+          <div className="bg-dark-card rounded-lg shadow-dark-md border border-dark-border">
+            <div className="px-6 py-4 border-b border-dark-border">
+              <h2 className="text-lg font-bold text-primary">Upcoming Newsletters</h2>
+            </div>
+            <div className="p-4">
+              <ul className="divide-y divide-dark-border">
+                {upcomingNewsletters.map((newsletter) => (
+                  <li key={newsletter.id} className="py-3">
+                    <div className="flex justify-between">
+                      <span className="text-light">{newsletter.title}</span>
+                      <span className="text-light-muted text-sm">{newsletter.date}</span>
+                    </div>
+                    <div className="mt-1">
+                      <span className={`text-xs px-2 py-1 rounded ${newsletter.status === 'Draft' ? 'bg-blue-900 text-blue-200' : 'bg-green-900 text-green-200'
+                        }`}>
+                        {newsletter.status}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
 
-        {/* API Status */}
-        <div className="bg-dark-lighter border border-dark-border rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-light mb-4">System Status</h2>
-
-          {apiStatus ? (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-dark-light p-4 rounded-lg shadow">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-light-muted text-sm">Subscribers</p>
-                      <p className="text-2xl font-bold text-light">{stats.subscribers}</p>
-                    </div>
-                    <FiUsers className="text-primary text-3xl" />
-                  </div>
-                </div>
-
-                <div className="bg-dark-light p-4 rounded-lg shadow">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-light-muted text-sm">Newsletters</p>
-                      <p className="text-2xl font-bold text-light">{stats.newsletters}</p>
-                    </div>
-                    <FiFileText className="text-primary text-3xl" />
-                  </div>
-                </div>
-
-                <div className="bg-dark-light p-4 rounded-lg shadow">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-light-muted text-sm">Articles</p>
-                      <p className="text-2xl font-bold text-light">{stats.articles}</p>
-                    </div>
-                    <FiFileText className="text-primary text-3xl" />
-                  </div>
-                </div>
-
-                <div className="bg-dark-light p-4 rounded-lg shadow">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-light-muted text-sm">Open Rate</p>
-                      <p className="text-2xl font-bold text-light">{stats.openRate}%</p>
-                    </div>
-                    <FiEye className="text-primary text-3xl" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-4">
-                <div className="p-4 bg-dark-light rounded-lg shadow flex-1 min-w-[300px]">
-                  <h3 className="text-light font-bold text-lg mb-3">Service Status</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-light-muted">Firebase</span>
-                      <span className={`${apiStatus.services?.firebase === 'ok' ? 'text-green-500' : 'text-red-500'
-                        }`}>
-                        {apiStatus.services?.firebase === 'ok' ? 'Operational' : 'Down'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-light-muted">Newsletter Service</span>
-                      <span className={`${apiStatus.services?.newsletter === 'ok' ? 'text-green-500' : 'text-red-500'
-                        }`}>
-                        {apiStatus.services?.newsletter === 'ok' ? 'Operational' : 'Down'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-light-muted">Content Service</span>
-                      <span className={`${apiStatus.services?.content === 'ok' ? 'text-green-500' : 'text-red-500'
-                        }`}>
-                        {apiStatus.services?.content === 'ok' ? 'Operational' : 'Down'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-dark-light rounded-lg shadow flex-1 min-w-[300px]">
-                  <h3 className="text-light font-bold text-lg mb-3">Quick Actions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    <button
-                      className="p-2 flex items-center justify-center bg-primary hover:bg-primary/80 rounded text-dark font-bold transition-colors"
-                      onClick={() => router.push('/admin/subscribers')}
-                    >
-                      <FiUsers className="mr-2" />
-                      Manage Subscribers
-                    </button>
-
-                    <button
-                      className="p-2 flex items-center justify-center bg-primary hover:bg-primary/80 rounded text-dark font-bold transition-colors"
-                      onClick={handleGenerateNewsletter}
-                      disabled={newsletterStatus?.status === 'generating'}
-                    >
-                      {newsletterStatus?.status === 'generating' ? (
-                        <span className="flex items-center">
-                          <span className="animate-spin h-4 w-4 mr-2 border-t-2 border-b-2 border-dark rounded-full"></span>
-                          Generating...
-                        </span>
-                      ) : (
-                        <span className="flex items-center">
-                          <FiFileText className="mr-2" />
-                          Generate Newsletter
-                        </span>
-                      )}
-                    </button>
-
-                    <button
-                      className="p-2 flex items-center justify-center bg-dark-border hover:bg-dark-border/80 rounded text-light font-bold transition-colors"
-                      onClick={navigateToProcessContent}
-                    >
-                      <FiCpu className="mr-2" />
-                      Process Content
-                    </button>
-
-                    <button
-                      className="p-2 flex items-center justify-center bg-dark-border hover:bg-dark-border/80 rounded text-light font-bold transition-colors"
-                      onClick={navigateToSearchNews}
-                    >
-                      <FiSearch className="mr-2" />
-                      Search News
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-light">
-              <p>Loading system status...</p>
-            </div>
-          )}
-        </div>
-
-        {/* Analytics & Monitoring with Real-Time Data */}
-        <div className="bg-dark-lighter border border-dark-border rounded-lg p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-light mb-4">Analytics & Monitoring</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-dark-light p-4 rounded-lg shadow">
-              <h3 className="text-light font-medium mb-3">Recent Activity</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between items-center p-2 bg-dark rounded">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span className="text-light">New subscriber</span>
-                  </div>
-                  <span className="text-light-muted text-sm">2 minutes ago</span>
-                </div>
-
-                <div className="flex justify-between items-center p-2 bg-dark rounded">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="text-light">Newsletter opened</span>
-                  </div>
-                  <span className="text-light-muted text-sm">15 minutes ago</span>
-                </div>
-
-                <div className="flex justify-between items-center p-2 bg-dark rounded">
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
-                    <span className="text-light">Content processed</span>
-                  </div>
-                  <span className="text-light-muted text-sm">1 hour ago</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-dark-light p-4 rounded-lg shadow">
-              <h3 className="text-light font-medium mb-3">Performance Metrics</h3>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-light-muted text-sm">API Requests</span>
-                    <span className="text-light text-sm">5842/day</span>
-                  </div>
-                  <div className="w-full bg-dark rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: '65%' }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-light-muted text-sm">CPU Usage</span>
-                    <span className="text-light text-sm">42%</span>
-                  </div>
-                  <div className="w-full bg-dark rounded-full h-2">
-                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '45%' }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-light-muted text-sm">Memory Usage</span>
-                    <span className="text-light text-sm">78%</span>
-                  </div>
-                  <div className="w-full bg-dark rounded-full h-2">
-                    <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '75%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Quick Actions */}
+        <div className="bg-dark-card p-6 rounded-lg shadow-dark-md border border-dark-border">
+          <h2 className="text-lg font-bold mb-4 text-primary">Quick Actions</h2>
+          <div className="flex flex-wrap gap-4">
+            <button className="flex items-center bg-primary text-dark px-4 py-2 rounded-md hover:bg-primary-light">
+              <FiFileText className="mr-2" />
+              New Newsletter
+            </button>
+            <button className="flex items-center bg-dark-light text-light px-4 py-2 rounded-md hover:bg-dark-lighter border border-dark-border">
+              <FiFileText className="mr-2" />
+              Add Content
+            </button>
+            <button className="flex items-center bg-dark-light text-light px-4 py-2 rounded-md hover:bg-dark-lighter border border-dark-border">
+              <FiUser className="mr-2" />
+              Manage Subscribers
+            </button>
           </div>
         </div>
       </div>
     </AdminLayout>
   );
 }
+
+export default withAdminAuth(AdminDashboard);

@@ -5,8 +5,9 @@ import { toast } from 'react-toastify';
 import ArticleSearch from '@/components/admin/ArticleSearch';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { addContentSource } from '@/lib/firebase';
+import withAdminAuth from '@/components/admin/withAdminAuth';
 
-export default function ArticleSearchPage() {
+export default withAdminAuth(function ArticleSearchPage() {
     const [selectedArticles, setSelectedArticles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
@@ -154,4 +155,4 @@ export default function ArticleSearchPage() {
             </div>
         </AdminLayout>
     );
-} 
+}); 

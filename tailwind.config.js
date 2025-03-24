@@ -19,9 +19,9 @@ module.exports = {
           800: '#3730a3',
           900: '#312e81'
         },
-        'primary': '#eccc58', // Yellow color
-        'primary-light': '#eccc58',
-        'primary-dark': '#eccc58',
+        'primary': '#FFD700', // Yellow color
+        'primary-light': '#E3A600',
+        'primary-dark': '#E3A600',
         'dark': '#121212', // Main dark background
         'dark-lighter': '#1E1E1E', // Slightly lighter dark
         'dark-light': '#2A2A2A', // Even lighter dark
